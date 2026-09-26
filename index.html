@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>스마트 자산 & 앱테크 관리</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .pt-safe { padding-top: env(safe-area-inset-top); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 pb-24 pt-safe select-none">
+
+    <!-- 상단 헤더 -->
+    <header class="sticky top-0 z-20 bg-slate-50/80 backdrop-blur-md border-b border-slate-200 px-5 py-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-slate-900">자산 & 앱테크 통합 관리</h1>
+            <p class="text-xs text-slate-500">목돈 운용 &amp; 매일 루틴 챙기기</p>
+        </div>
+        <button onclick="openModal('quickAdd')" class="bg-indigo-600 text-white p-2.5 rounded-full shadow-lg hover:bg-indigo-700 active:scale-95 transition">
+            <i class="ph ph-plus text-xl font-bold"></i>
+        </button>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="px-5 py-4 max-w-md mx-auto space-y-6">
+
+        <!-- [TAB 1] 대시보드 -->
+        <section id="tab-dashboard" class="tab-content space-y-5">
+            <!-- 가용 자금 카드 -->
+            <div onclick="switchTab('calendar')" class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-2xl p-5 text-white shadow-xl cursor-pointer transform active:scale-98 transition">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs opacity-80 font-medium">이번 달 실질 가용 현금</span>
+                    <i class="ph ph-caret-right text-sm"></i>
+                </div>
+                <div class="text-3xl font-extrabold tracking-tight" id="dash-available">0원</div>
+                <div class="mt-4 pt-3 border-t border-indigo-400/30 flex justify-between text-xs">
+                    <div>예정 수입: <span id="dash-income" class="font-semibold text-emerald-300">+0원</span></div>
+                    <div>고정 지출/저축: <span id="dash-expense" class="font-semibold text-rose-300">-0원</span></div>
+                </div>
+            </div>
+
+            <!-- 요약 스탯 카드 (터치 시 이동) -->
+            <div class="grid grid-cols-2 gap-3">
+                <div onclick="switchTab('assets')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer active:bg-slate-50">
+                    <div class="flex items-center text-slate-500 mb-1">
+                        <i class="ph ph-bank text-indigo-600 mr-1.5 text-lg"></i>
+                        <span class="text-xs font-semibold">총 보유 자산</span>
+                    </div>
+                    <div class="text-lg font-bold text-slate-900" id="dash-total-assets">0원</div>
+                </div>
+                <div onclick="switchTab('apptech')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer active:bg-slate-50">
+                    <div class="flex items-center text-slate-500 mb-1">
+                        <i class="ph ph-check-square-offset text-emerald-600 mr-1.5 text-lg"></i>
+                        <span class="text-xs font-semibold">오늘 앱테크</span>
+                    </div>
+                    <div class="text-lg font-bold text-slate-900" id="dash-apptech-progress">0 / 0</div>
+                </div>
+            </div>
+
+            <!-- 우대금리 / 주요 알림 미션 -->
+            <div onclick="switchTab('calendar')" class="bg-amber-50 border border-amber-200 rounded-xl p-4 cursor-pointer">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center text-amber-800 font-bold text-sm">
+                        <i class="ph ph-warning-circle text-lg mr-1.5"></i> 우대금리 & 주요 일정 미션
+                    </div>
+                    <i class="ph ph-caret-right text-xs text-amber-600"></i>
+                </div>
+                <ul class="text-xs text-amber-900 space-y-1.5 list-disc list-inside" id="dash-mission-list">
+                    <li>등록된 우대금리 미션이 없습니다.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- [TAB 2] 앱테크 루틴 -->
+        <section id="tab-apptech" class="tab-content hidden space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold text-slate-900">앱테크 체크리스트</h2>
+                <div class="flex space-x-1 text-xs">
+                    <button onclick="setApptechView('daily')" id="btn-apptech-daily" class="px-3 py-1 rounded-full bg-indigo-600 text-white font-medium">데일리의</button>
+                    <button onclick="setApptechView('weekly')" id="btn-apptech-weekly" class="px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium">주별</button>
+                    <button onclick="setApptechView('monthly')" id="btn-apptech-monthly" class="px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium">월별</button>
+                </div>
+            </div>
+
+            <!-- 앱테크 리스트 -->
+            <div class="space-y-2.5" id="apptech-list">
+                <!-- 자바스크립트로 렌더링 -->
+            </div>
+        </section>
+
+        <!-- [TAB 3] 금융 달력 -->
+        <section id="tab-calendar" class="tab-content hidden space-y-4">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                <!-- 달력 헤더 -->
+                <div class="flex justify-between items-center mb-4">
+                    <button onclick="changeMonth(-1)" class="p-1 rounded-lg hover:bg-slate-100"><i class="ph ph-caret-left text-lg"></i></button>
+                    <h2 class="text-base font-bold text-slate-900" id="calendar-month-year">2026년 9월</h2>
+                    <button onclick="changeMonth(1)" class="p-1 rounded-lg hover:bg-slate-100"><i class="ph ph-caret-right text-lg"></i></button>
+                </div>
+                <!-- 요일 표시 -->
+                <div class="grid grid-cols-7 text-center text-xs font-semibold text-slate-400 mb-2">
+                    <span class="text-rose-500">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="text-indigo-500">토</span>
+                </div>
+                <!-- 날짜 그리드 -->
+                <div class="grid grid-cols-7 gap-1 text-xs text-center" id="calendar-grid"></div>
+            </div>
+
+            <!-- 선택 날짜 요약 -->
+            <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-2">
+                <h3 class="text-xs font-bold text-slate-500" id="selected-date-title">이벤트 내역</h3>
+                <div class="space-y-1.5 text-xs" id="selected-date-events">
+                    <p class="text-slate-400">날짜를 선택하세요.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- [TAB 4] 적금 & 우대금리 -->
+        <section id="tab-savings" class="tab-content hidden space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold text-slate-900">적금 트래커</h2>
+                <button onclick="openModal('addSavings')" class="text-xs text-indigo-600 font-bold flex items-center">
+                    <i class="ph ph-plus-circle text-base mr-1"></i> 적금 추가
+                </button>
+            </div>
+            <div class="space-y-3" id="savings-list">
+                <!-- 자바스크립트로 적금 카드 렌더링 -->
+            </div>
+        </section>
+
+        <!-- [TAB 5] 통장 & 자산 -->
+        <section id="tab-assets" class="tab-content hidden space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold text-slate-900">통장 및 계좌 목록</h2>
+                <button onclick="openModal('addAccount')" class="text-xs text-indigo-600 font-bold flex items-center">
+                    <i class="ph ph-plus-circle text-base mr-1"></i> 계좌 추가
+                </button>
+            </div>
+            <div class="space-y-3" id="account-list">
+                <!-- 자바스크립트로 계좌 카드 렌더링 -->
+            </div>
+        </section>
+    </main>
+
+    <!-- 하단 탭 바 (아이폰 모바일 최적화) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 px-3 py-2 pb-safe z-30">
+        <div class="max-w-md mx-auto flex justify-between items-center text-center">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn text-indigo-600 flex-1 py-1">
+                <i class="ph ph-house-line text-xl block mx-auto"></i>
+                <span class="text-[10px] font-medium block mt-0.5">대시보드</span>
+            </button>
+            <button onclick="switchTab('apptech')" id="nav-apptech" class="nav-btn text-slate-400 flex-1 py-1">
+                <i class="ph ph-check-square-offset text-xl block mx-auto"></i>
+                <span class="text-[10px] font-medium block mt-0.5">앱테크</span>
+            </button>
+            <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn text-slate-400 flex-1 py-1">
+                <i class="ph ph-calendar-blank text-xl block mx-auto"></i>
+                <span class="text-[10px] font-medium block mt-0.5">달력</span>
+            </button>
+            <button onclick="switchTab('savings')" id="nav-savings" class="nav-btn text-slate-400 flex-1 py-1">
+                <i class="ph ph-piggy-bank text-xl block mx-auto"></i>
+                <span class="text-[10px] font-medium block mt-0.5">적금</span>
+            </button>
+            <button onclick="switchTab('assets')" id="nav-assets" class="nav-btn text-slate-400 flex-1 py-1">
+                <i class="ph ph-wallet text-xl block mx-auto"></i>
+                <span class="text-[10px] font-medium block mt-0.5">자산</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 모달: 빠른 추가 (수입/지출/앱테크) -->
+    <div id="modal-quickAdd" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end justify-center">
+        <div class="bg-white rounded-t-2xl p-6 w-full max-w-md space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900">항목 추가</h3>
+                <button onclick="closeModal('quickAdd')" class="text-slate-400 text-lg"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">유형</label>
+                    <select id="quick-type" onchange="toggleQuickFields()" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                        <option value="income">예정 수입</option>
+                        <option value="expense">고정 지출</option>
+                        <option value="apptech">앱테크 루틴</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">항목명</label>
+                    <input type="text" id="quick-title" placeholder="예: 알바비, 구독료, 광고보기" class="w-full p-2.5 border rounded-lg">
+                </div>
+                <div id="field-amount">
+                    <label class="block font-semibold mb-1">금액 (원)</label>
+                    <input type="number" id="quick-amount" placeholder="0" class="w-full p-2.5 border rounded-lg">
+                </div>
+                <div id="field-day">
+                    <label class="block font-semibold mb-1">발생일 (매월 며칠)</label>
+                    <input type="number" id="quick-day" placeholder="1~31" min="1" max="31" class="w-full p-2.5 border rounded-lg">
+                </div>
+                <div id="field-apptech" class="hidden space-y-3">
+                    <div>
+                        <label class="block font-semibold mb-1">주기</label>
+                        <select id="quick-apptech-cycle" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                            <option value="daily">매일</option>
+                            <option value="weekly">매주</option>
+                            <option value="monthly">매월</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">알림 시간 (선택)</label>
+                        <input type="time" id="quick-apptech-time" class="w-full p-2.5 border rounded-lg">
+                    </div>
+                </div>
+                <button onclick="saveQuickAdd()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 스크립트 로직 -->
+    <script>
+        // 초기 데이터 세팅
+        let appData = {
+            accounts: JSON.parse(localStorage.getItem('app_accounts')) || [
+                { id: 1, name: "우리은행 메인통장", balance: 1500000, type: "checking" },
+                { id: 2, name: "Npay 4% 파킹통장", balance: 5000000, type: "cma" }
+            ],
+            savings: JSON.parse(localStorage.getItem('app_savings')) || [],
+            incomes: JSON.parse(localStorage.getItem('app_incomes')) || [
+                { id: 1, title: "월급", amount: 1300000, day: 17 },
+                { id: 2, title: "월세지원", amount: 200000, day: 23 }
+            ],
+            expenses: JSON.parse(localStorage.getItem('app_expenses')) || [
+                { id: 1, title: "생활비", amount: 900000, day: 1 },
+                { id: 2, title: "보험료", amount: 160000, day: 10 }
+            ],
+            apptech: JSON.parse(localStorage.getItem('app_apptech')) || [
+                { id: 1, title: "만보기 1만보 달성", cycle: "daily", time: "20:00", done: false },
+                { id: 2, title: "출석체크 및 광고보기", cycle: "daily", time: "09:00", done: false }
+            ]
+        };
+
+        let curYear = new Date().getFullYear();
+        let curMonth = new Date().getMonth();
+        let selectedApptechTab = 'daily';
+
+        function saveData() {
+            localStorage.setItem('app_accounts', JSON.stringify(appData.accounts));
+            localStorage.setItem('app_savings', JSON.stringify(appData.savings));
+            localStorage.setItem('app_incomes', JSON.stringify(appData.incomes));
+            localStorage.setItem('app_expenses', JSON.stringify(appData.expenses));
+            localStorage.setItem('app_apptech', JSON.stringify(appData.apptech));
+            renderAll();
+        }
+
+        // 탭 전환
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('text-indigo-600');
+                el.classList.add('text-slate-400');
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabName}`).classList.add('text-indigo-600');
+            document.getElementById(`nav-${tabName}`).classList.remove('text-slate-400');
+        }
+
+        // 대시보드 렌더링
+        function renderDashboard() {
+            const totalAssets = appData.accounts.reduce((acc, cur) => acc + Number(cur.balance), 0);
+            const totalIncomes = appData.incomes.reduce((acc, cur) => acc + Number(cur.amount), 0);
+            const totalExpenses = appData.expenses.reduce((acc, cur) => acc + Number(cur.amount), 0);
+            
+            document.getElementById('dash-available').innerText = (totalIncomes - totalExpenses).toLocaleString() + '원';
+            document.getElementById('dash-income').innerText = '+' + totalIncomes.toLocaleString() + '원';
+            document.getElementById('dash-expense').innerText = '-' + totalExpenses.toLocaleString() + '원';
+            document.getElementById('dash-total-assets').innerText = totalAssets.toLocaleString() + '원';
+
+            const apptechDone = appData.apptech.filter(a => a.done).length;
+            document.getElementById('dash-apptech-progress').innerText = `${apptechDone} / ${appData.apptech.length}`;
+        }
+
+        // 앱테크 렌더링
+        function renderApptech() {
+            const listEl = document.getElementById('apptech-list');
+            listEl.innerHTML = '';
+
+            const filtered = appData.apptech.filter(a => a.cycle === selectedApptechTab);
+            if(filtered.length === 0) {
+                listEl.innerHTML = `<div class="text-xs text-slate-400 text-center py-6">등록된 앱테크 항목이 없습니다.</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `p-3.5 rounded-xl border flex items-center justify-between transition ${item.done ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-slate-200'}`;
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleApptech(${item.id})" class="w-5 h-5 accent-indigo-600 rounded">
+                        <div>
+                            <div class="text-xs font-bold ${item.done ? 'line-through text-slate-400' : 'text-slate-800'}">${item.title}</div>
+                            ${item.time ? `<div class="text-[10px] text-slate-400 flex items-center mt-0.5"><i class="ph ph-clock mr-1"></i>${item.time} 알림</div>` : ''}
+                        </div>
+                    </div>
+                    <button onclick="deleteApptech(${item.id})" class="text-slate-300 hover:text-rose-500 text-sm"><i class="ph ph-trash"></i></button>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        function toggleApptech(id) {
+            const item = appData.apptech.find(a => a.id === id);
+            if(item) item.done = !item.done;
+            saveData();
+        }
+
+        function deleteApptech(id) {
+            appData.apptech = appData.apptech.filter(a => a.id !== id);
+            saveData();
+        }
+
+        function setApptechView(cycle) {
+            selectedApptechTab = cycle;
+            ['daily', 'weekly', 'monthly'].forEach(c => {
+                const btn = document.getElementById(`btn-apptech-${c}`);
+                if(c === cycle) {
+                    btn.className = 'px-3 py-1 rounded-full bg-indigo-600 text-white font-medium';
+                } else {
+                    btn.className = 'px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium';
+                }
+            });
+            renderApptech();
+        }
+
+        // 달력 렌더링
+        function renderCalendar() {
+            document.getElementById('calendar-month-year').innerText = `${curYear}년 ${curMonth + 1}월`;
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            const firstDay = new Date(curYear, curMonth, 1).getDay();
+            const lastDate = new Date(curYear, curMonth + 1, 0).getDate();
+
+            for(let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div></div>`;
+            }
+
+            for(let d = 1; d <= lastDate; d++) {
+                const hasIncome = appData.incomes.some(i => i.day === d);
+                const hasExpense = appData.expenses.some(e => e.day === d);
+
+                grid.innerHTML += `
+                    <div onclick="selectCalendarDate(${d})" class="p-1.5 min-h-[44px] border border-slate-100 rounded-lg flex flex-col justify-between items-center cursor-pointer hover:bg-slate-50">
+                        <span class="font-semibold text-slate-700">${d}</span>
+                        <div class="flex space-x-0.5">
+                            ${hasIncome ? `<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>` : ''}
+                            ${hasExpense ? `<span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function changeMonth(delta) {
+            curMonth += delta;
+            if(curMonth < 0) { curMonth = 11; curYear--; }
+            if(curMonth > 11) { curMonth = 0; curYear++; }
+            renderCalendar();
+        }
+
+        function selectCalendarDate(day) {
+            document.getElementById('selected-date-title').innerText = `${curYear}년 ${curMonth + 1}월 ${day}일 내역`;
+            const eventsEl = document.getElementById('selected-date-events');
+            eventsEl.innerHTML = '';
+
+            const incs = appData.incomes.filter(i => i.day === day);
+            const exps = appData.expenses.filter(e => e.day === day);
+
+            if(incs.length === 0 && exps.length === 0) {
+                eventsEl.innerHTML = `<p class="text-slate-400">예정된 이벤트가 없습니다.</p>`;
+                return;
+            }
+
+            incs.forEach(i => {
+                eventsEl.innerHTML += `<div class="flex justify-between text-emerald-600 font-semibold"><span>[수입] ${i.title}</span><span>+${Number(i.amount).toLocaleString()}원</span></div>`;
+            });
+            exps.forEach(e => {
+                eventsEl.innerHTML += `<div class="flex justify-between text-rose-500 font-semibold"><span>[지출] ${e.title}</span><span>-${Number(e.amount).toLocaleString()}원</span></div>`;
+            });
+        }
+
+        // 모달 관리 및 추가 로직
+        function openModal(id) { document.getElementById(`modal-${id}`).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(`modal-${id}`).classList.add('hidden'); }
+
+        function toggleQuickFields() {
+            const type = document.getElementById('quick-type').value;
+            if(type === 'apptech') {
+                document.getElementById('field-amount').classList.add('hidden');
+                document.getElementById('field-day').classList.add('hidden');
+                document.getElementById('field-apptech').classList.remove('hidden');
+            } else {
+                document.getElementById('field-amount').classList.remove('hidden');
+                document.getElementById('field-day').classList.remove('hidden');
+                document.getElementById('field-apptech').classList.add('hidden');
+            }
+        }
+
+        function saveQuickAdd() {
+            const type = document.getElementById('quick-type').value;
+            const title = document.getElementById('quick-title').value.trim();
+
+            if(!title) return alert('항목명을 입력해 주세요.');
+
+            if(type === 'apptech') {
+                const cycle = document.getElementById('quick-apptech-cycle').value;
+                const time = document.getElementById('quick-apptech-time').value;
+                appData.apptech.push({ id: Date.now(), title, cycle, time, done: false });
+            } else {
+                const amount = Number(document.getElementById('quick-amount').value) || 0;
+                const day = Number(document.getElementById('quick-day').value) || 1;
+                if(type === 'income') appData.incomes.push({ id: Date.now(), title, amount, day });
+                if(type === 'expense') appData.expenses.push({ id: Date.now(), title, amount, day });
+            }
+
+            saveData();
+            closeModal('quickAdd');
+            document.getElementById('quick-title').value = '';
+            document.getElementById('quick-amount').value = '';
+        }
+
+        function renderAll() {
+            renderDashboard();
+            renderApptech();
+            renderCalendar();
+        }
+
+        // 초기 시작
+        renderAll();
+    </script>
+</body>
+</html>
