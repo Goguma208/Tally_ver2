@@ -2,1194 +2,281 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>스마트 금융 & 앱테크 매니저</title>
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { -webkit-tap-highlight-color: transparent; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans pb-24">
+<body class="bg-gray-100 font-sans text-gray-800">
 
-    <!-- 상단 헤더 -->
-    <header class="sticky top-0 bg-white border-b border-slate-200 z-30 px-4 py-3 flex justify-between items-center shadow-sm">
-        <div>
-            <h1 class="font-bold text-lg text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-wallet text-indigo-600"></i> 스마트 금융 매니저
-            </h1>
-            <p class="text-xs text-slate-500" id="current-month-text"></p>
+    <!-- Header Navigation -->
+    <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl font-bold"><i class="fa-solid font-sharp fa-wallet mr-2"></i>스마트 금융 매니저</h1>
+            <nav class="hidden md:flex space-x-4">
+                <button onclick="switchTab('dashboard')" class="hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium">대시보드</button>
+                <button onclick="switchTab('card')" class="hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium">카드 & 혜택</button>
+                <button onclick="switchTab('apptech')" class="hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium">앱테크</button>
+                <button onclick="switchTab('calendar')" class="hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium">달력</button>
+                <button onclick="switchTab('savings')" class="hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium">적금 & 자산</button>
+                <!-- IGICE CSHYA: Cash Flow Scenario -->
+                <button onclick="switchTab('cashflow')" class="bg-indigo-800 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-white">현금흐름 시나리오</button>
+            </nav>
         </div>
-        <button onclick="openConditionModal()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm active:scale-95 transition-transform flex items-center gap-1">
-            <i class="fa-solid fa-bullseye"></i> 우대미션 추가
-        </button>
     </header>
 
-    <!-- 메인 컨텐츠 영역 -->
-    <main class="max-w-md mx-auto p-4 space-y-4">
+    <!-- Main Container -->
+    <main class="container mx-auto px-4 py-6">
 
-        <!--오늘 수행해야 할 우대금리 긴급 미션 알림 바 -->
-        <div id="today-alert-container"></div>
-
-        <!-- TAB 1: 대시보드 -->
-        <section id="tab-dashboard" class="tab-content space-y-4">
-            <!-- 가용 현금 카드 -->
-            <div onclick="switchTab('tab-calendar')" class="cursor-pointer bg-gradient-to-br from-indigo-600 to-indigo-800 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="text-xs font-semibold bg-white/20 px-2 py-0.5 rounded-full">이번 달 실질 가용 현금</span>
-                    <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
+        <!-- DASHBOARD TAB -->
+        <section id="dashboard" class="tab-content">
+            <h2 class="text-2xl font-bold mb-4">이번 달 종합 요약</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-gray-500 text-sm">실질 가용 현금</h3>
+                    <p class="text-3xl font-bold text-indigo-600 mt-2">1,850,000 원</p>
                 </div>
-                <div class="text-2xl font-black mb-1" id="dash-available-cash">0 원</div>
-                <p class="text-xs text-indigo-100" id="dash-cash-desc">예정 수입에서 고정 지출/저축을 제외한 금액</p>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-gray-500 text-sm">총 보유 자산</h3>
+                    <p class="text-3xl font-bold text-green-600 mt-2">15,400,000 원</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-gray-500 text-sm">이번 달 저축 달성률</h3>
+                    <p class="text-3xl font-bold text-amber-500 mt-2">82%</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- IGICE CSHYA: CASH FLOW SCENARIO TAB -->
+        <section id="cashflow" class="tab-content active">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">현금흐름 예상 시나리오 (Cash Flow Projection)</h2>
+                    <p class="text-sm text-gray-500">Ibihe bitandukanye by'ingano y'amafaranga azagenda yinjira n'asohoka mu mezi ari imbere.</p>
+                </div>
             </div>
 
-            <!-- 보유 자산 요약 -->
-            <div class="grid grid-cols-2 gap-3">
-                <div onclick="switchTab('tab-assets')" class="cursor-pointer bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300">
-                    <div class="flex items-center gap-2 text-slate-500 text-xs mb-1">
-                        <i class="fa-solid fa-building-columns text-indigo-500"></i>
-                        <span>총 보유 자산</span>
+            <!-- Parametere zo guhindura -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Controlling Panel -->
+                <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
+                    <h3 class="font-bold text-lg text-indigo-700 border-b pb-2"><i class="fa-solid fa-sliders mr-2"></i>시나리오 설정</h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">현재 총 자산 (원)</label>
+                        <input type="number" id="startBalance" value="15400000" onchange="updateCashFlowChart()" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500">
                     </div>
-                    <div class="font-bold text-base text-slate-900" id="dash-total-assets">0 원</div>
-                </div>
-                <div onclick="switchTab('tab-savings')" class="cursor-pointer bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300">
-                    <div class="flex items-center gap-2 text-slate-500 text-xs mb-1">
-                        <i class="fa-solid fa-piggy-bank text-purple-500"></i>
-                        <span>이번 달 저축 목표</span>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">월 평균 수입 (원)</label>
+                        <input type="number" id="monthlyIncome" value="3000000" onchange="updateCashFlowChart()" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500">
                     </div>
-                    <div class="font-bold text-base text-slate-900" id="dash-total-savings">0 원</div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">월 고정/변동 지출 (원)</label>
+                        <input type="number" id="monthlyExpense" value="1800000" onchange="updateCashFlowChart()" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">예상 기간</label>
+                        <select id="projectionMonths" onchange="updateCashFlowChart()" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500">
+                            <option value="6">6개월 후</option>
+                            <option value="12" selected>1년 후 (12개월)</option>
+                            <option value="24">2년 후 (24개월)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Live Projection Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-md lg:col-span-2">
+                    <h3 class="font-bold text-lg text-gray-800 mb-4"><i class="fa-solid fa-chart-line mr-2 text-indigo-600"></i>시나리오별 자산 추이 그래프</h3>
+                    <div class="relative h-72">
+                        <canvas id="cashFlowChart"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <!-- 우대금리 미션 방어 -->
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-                <div class="flex justify-between items-center">
-                    <h2 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
-                        <i class="fa-solid fa-bullseye text-amber-500"></i> 우대금리 미션 방어
-                    </h2>
-                    <button onclick="openConditionModal()" class="text-xs text-indigo-600 font-semibold">+ 미션 추가</button>
-                </div>
-                <div id="dash-mission-list" class="space-y-2"></div>
-            </div>
-        </section>
-
-        <!-- TAB 2: 카드 & 실적/혜택 (다중 혜택 지원) -->
-        <section id="tab-cards" class="tab-content hidden space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="font-bold text-base text-slate-900">카드 실적 및 혜택 회수</h2>
-                <button onclick="openCardModal()" class="bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg font-medium">+ 카드 등록</button>
-            </div>
-
-            <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs text-amber-800 space-y-1">
-                <div class="font-bold flex items-center gap-1">
-                    <i class="fa-solid fa-lightbulb"></i> 스마트 결제 가이드
-                </div>
-                <p>• <b>대중교통:</b> K-패스 카드 전용 결제 (환급율 최적화)</p>
-                <p>• 카드별 주요 혜택 카운트를 체크하며 피킹률을 극대화하세요.</p>
-            </div>
-
-            <div id="card-list" class="space-y-3"></div>
-        </section>
-
-        <!-- TAB 3: 앱테크 루틴 (개별 CRUD 및 앱별 달성률) -->
-        <section id="tab-apptech" class="tab-content hidden space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="font-bold text-base text-slate-900">앱테크 루틴</h2>
-                <button onclick="openApptechModal()" class="bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg font-medium">+ 루틴 추가</button>
-            </div>
-
-            <!-- 데일리 미션 리스트 -->
-            <div id="apptech-daily-list" class="space-y-3"></div>
-
-            <!-- 월간 앱별 달성 현황 -->
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-                <h3 class="font-bold text-xs text-slate-700 flex items-center gap-1">
-                    <i class="fa-solid fa-chart-line text-indigo-500"></i> 앱별 이번 달 수행 통계
-                </h3>
-                <div id="apptech-monthly-stats" class="space-y-2.5"></div>
-            </div>
-        </section>
-
-        <!-- TAB 4: 금융 달력 (필터 및 직접 추가/수정/삭제) -->
-        <section id="tab-calendar" class="tab-content hidden space-y-4">
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div class="flex justify-between items-center mb-3">
-                    <button onclick="changeMonth(-1)" class="p-1 text-slate-600 hover:text-slate-900"><i class="fa-solid fa-chevron-left"></i></button>
-                    <h2 class="font-bold text-base text-slate-800" id="calendar-month-year">2026년 9월</h2>
-                    <button onclick="changeMonth(1)" class="p-1 text-slate-600 hover:text-slate-900"><i class="fa-solid fa-chevron-right"></i></button>
+            <!-- Cards Summarizing Scenarios -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Scenario 1: Realistic/Normal -->
+                <div class="bg-white border-t-4 border-blue-500 p-5 rounded-xl shadow-md">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-blue-600">기본 시나리오 (Standard)</span>
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">보통</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">현재의 수입과 지출 패턴이 그대로 유지되는 경우</p>
+                    <div class="text-2xl font-bold text-gray-800 mb-1" id="scenBaseTarget">0 원</div>
+                    <p class="text-xs text-gray-400">목표 기간 후 예상 자산</p>
                 </div>
 
-                <!-- 입출금 필터 버튼 -->
-                <div class="flex justify-center gap-1 mb-3 text-xs">
-                    <button onclick="setCalendarFilter('all')" id="cal-filter-all" class="px-3 py-1 rounded-full bg-slate-900 text-white font-semibold">전체</button>
-                    <button onclick="setCalendarFilter('income')" id="cal-filter-income" class="px-3 py-1 rounded-full bg-slate-100 text-emerald-700 font-semibold">수입(입금)</button>
-                    <button onclick="setCalendarFilter('expense')" id="cal-filter-expense" class="px-3 py-1 rounded-full bg-slate-100 text-rose-700 font-semibold">지출/적금(출금)</button>
+                <!-- Scenario 2: Optimistic/Savings -->
+                <div class="bg-white border-t-4 border-green-500 p-5 rounded-xl shadow-md">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-green-600">낙관적 시나리오 (Optimistic)</span>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">지출 15% 절감</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">앱테크 및 절약으로 지출을 줄이고 수입이 5% 증가할 때</p>
+                    <div class="text-2xl font-bold text-gray-800 mb-1" id="scenOptTarget">0 원</div>
+                    <p class="text-xs text-gray-400">목표 기간 후 예상 자산</p>
                 </div>
 
-                <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400 mb-2">
-                    <div class="text-rose-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-500">토</div>
+                <!-- Scenario 3: Pessimistic/Crisis -->
+                <div class="bg-white border-t-4 border-red-500 p-5 rounded-xl shadow-md">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-red-600">비관적 시나리오 (Pessimistic)</span>
+                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">비상 상황</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">갑작스러운 수입 감소(-20%) 또는 비상 지출(+20%) 발생 시</p>
+                    <div class="text-2xl font-bold text-gray-800 mb-1" id="scenPessTarget">0 원</div>
+                    <p class="text-xs text-gray-400">목표 기간 후 예상 자산</p>
                 </div>
-                <div class="grid grid-cols-7 gap-1 text-center text-xs" id="calendar-days"></div>
             </div>
-
-            <!-- 선택 일자 상세 내역 & 일정 추가 -->
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <h3 class="font-bold text-sm text-slate-800" id="selected-date-text">선택된 날짜 내역</h3>
-                    <button onclick="openCalendarEventModal()" class="text-xs bg-indigo-50 text-indigo-600 font-bold px-2.5 py-1 rounded-lg">+ 금융일정 추가</button>
-                </div>
-                <div id="selected-date-items" class="space-y-2 text-xs text-slate-600"></div>
-            </div>
-        </section>
-
-        <!-- TAB 5: 적금 트래커 (납입 막대 그래프 & 우대 미션 태그) -->
-        <section id="tab-savings" class="tab-content hidden space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="font-bold text-base text-slate-900">적금 & 목돈 트래커</h2>
-                <button onclick="openSavingsModal()" class="bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg font-medium">+ 적금 등록</button>
-            </div>
-            <div id="savings-list" class="space-y-3"></div>
-        </section>
-
-        <!-- TAB 6: 통장 & 계좌 자산 -->
-        <section id="tab-assets" class="tab-content hidden space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="font-bold text-base text-slate-900">계좌 & CMA 자산</h2>
-                <button onclick="openAccountModal()" class="bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg font-medium">+ 계좌 추가</button>
-            </div>
-            <div id="account-list" class="space-y-3"></div>
         </section>
 
     </main>
 
-    <!-- 하단 네비게이션 바 -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-30 px-2 py-2">
-        <div class="max-w-md mx-auto grid grid-cols-6 gap-1 text-center text-[10px]">
-            <button onclick="switchTab('tab-dashboard')" class="nav-btn text-indigo-600 flex flex-col items-center py-1">
-                <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>대시보드
-            </button>
-            <button onclick="switchTab('tab-cards')" class="nav-btn text-slate-400 flex flex-col items-center py-1">
-                <i class="fa-solid fa-credit-card text-base mb-0.5"></i>카드/혜택
-            </button>
-            <button onclick="switchTab('tab-apptech')" class="nav-btn text-slate-400 flex flex-col items-center py-1">
-                <i class="fa-solid fa-mobile-screen-button text-base mb-0.5"></i>앱테크
-            </button>
-            <button onclick="switchTab('tab-calendar')" class="nav-btn text-slate-400 flex flex-col items-center py-1">
-                <i class="fa-solid fa-calendar-days text-base mb-0.5"></i>달력
-            </button>
-            <button onclick="switchTab('tab-savings')" class="nav-btn text-slate-400 flex flex-col items-center py-1">
-                <i class="fa-solid fa-piggy-bank text-base mb-0.5"></i>적금
-            </button>
-            <button onclick="switchTab('tab-assets')" class="nav-btn text-slate-400 flex flex-col items-center py-1">
-                <i class="fa-solid fa-building-columns text-base mb-0.5"></i>자산
-            </button>
-        </div>
-    </nav>
-
-    <!-- MODAL 1: 카드 등록/수정 (다중 혜택) -->
-    <div id="modal-card" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="font-bold text-base text-slate-900" id="modal-card-title">카드 및 다중 혜택 등록</h3>
-            <form id="form-card" onsubmit="saveCard(event)" class="space-y-3 text-xs">
-                <input type="hidden" id="card-id">
-                <div>
-                    <label class="block font-semibold mb-1">카드명</label>
-                    <input type="text" id="card-name" required placeholder="예: K-패스 신한 체크카드" class="w-full border rounded-lg p-2.5">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-semibold mb-1">목표 실적 (원)</label>
-                        <input type="number" id="card-target" required placeholder="300000" class="w-full border rounded-lg p-2.5">
-                    </div>
-                    <div>
-                        <label class="block font-semibold mb-1">현재 사용액 (원)</label>
-                        <input type="number" id="card-current" required placeholder="0" class="w-full border rounded-lg p-2.5">
-                    </div>
-                </div>
-
-                <!-- 다중 혜택 컨테이너 -->
-                <div class="border-t pt-3 space-y-2">
-                    <div class="flex justify-between items-center">
-                        <label class="font-bold text-slate-800">주요 혜택 목록</label>
-                        <button type="button" onclick="addBenefitInputRow()" class="text-xs text-indigo-600 font-bold">+ 혜택 추가</button>
-                    </div>
-                    <div id="card-benefits-inputs" class="space-y-2"></div>
-                </div>
-
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeModal('modal-card')" class="w-1/2 border py-2.5 rounded-lg font-bold text-slate-500">취소</button>
-                    <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-lg font-bold">저장</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 2: 앱테크 미션 전용 추가/수정 -->
-    <div id="modal-apptech" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs">
-            <h3 class="font-bold text-base text-slate-900" id="modal-apptech-title">앱테크 루틴 미션 설정</h3>
-            <form id="form-apptech" onsubmit="saveApptech(event)" class="space-y-3">
-                <input type="hidden" id="apptech-id">
-                <div>
-                    <label class="block font-semibold mb-1">앱/플랫폼 이름</label>
-                    <input type="text" id="apptech-app" required placeholder="예: 토스, 모니모, 캐시워크" class="w-full border rounded-lg p-2.5">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">미션 내용</label>
-                    <input type="text" id="apptech-title" required placeholder="예: 만보기 1만보 채우기 / 출석체크" class="w-full border rounded-lg p-2.5">
-                </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeModal('modal-apptech')" class="w-1/2 border py-2.5 rounded-lg font-bold text-slate-500">취소</button>
-                    <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-lg font-bold">저장</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 3: 금융 달력 일정 직접 추가/수정 -->
-    <div id="modal-cal-event" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs">
-            <h3 class="font-bold text-base text-slate-900">금융 일정 등록</h3>
-            <form id="form-cal-event" onsubmit="saveCalendarEvent(event)" class="space-y-3">
-                <input type="hidden" id="cal-event-id">
-                <div>
-                    <label class="block font-semibold mb-1">구분</label>
-                    <select id="cal-event-type" class="w-full border rounded-lg p-2.5">
-                        <option value="income">수입 (입금)</option>
-                        <option value="expense">지출 (출금)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">일정 항목명</label>
-                    <input type="text" id="cal-event-title" required placeholder="예: 알바비 입금 / 통신비 자동이체" class="w-full border rounded-lg p-2.5">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-semibold mb-1">금액 (원)</label>
-                        <input type="number" id="cal-event-amount" required placeholder="0" class="w-full border rounded-lg p-2.5">
-                    </div>
-                    <div>
-                        <label class="block font-semibold mb-1">매월 날짜 (일)</label>
-                        <input type="number" id="cal-event-day" min="1" max="31" required class="w-full border rounded-lg p-2.5">
-                    </div>
-                </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeModal('modal-cal-event')" class="w-1/2 border py-2.5 rounded-lg font-bold text-slate-500">취소</button>
-                    <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-lg font-bold">저장</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 4: 우대금리 미션 등록 모달 -->
-    <div id="modal-condition" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs">
-            <h3 class="font-bold text-base text-slate-900">우대금리 미션 추가</h3>
-            <form id="form-condition" onsubmit="saveCondition(event)" class="space-y-3">
-                <input type="hidden" id="cond-id">
-                <div>
-                    <label class="block font-semibold mb-1">미션 명칭</label>
-                    <input type="text" id="cond-title" required placeholder="예: 모니모 CMA 100만 원 예치" class="w-full border rounded-lg p-2.5">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">관련 적금 / 금융기관</label>
-                    <input type="text" id="cond-target" required placeholder="예: 신한 적금 9단" class="w-full border rounded-lg p-2.5">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">이행 주기 / 날짜</label>
-                    <select id="cond-cycle" class="w-full border rounded-lg p-2.5">
-                        <option value="lastDay">매달 말일 당일</option>
-                        <option value="15">매달 15일</option>
-                        <option value="1">매달 1일</option>
-                    </select>
-                </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeModal('modal-condition')" class="w-1/2 border py-2.5 rounded-lg font-bold text-slate-500">취소</button>
-                    <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-lg font-bold">저장</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 5: 적금 등록/수정 모달 -->
-    <div id="modal-savings" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto text-xs">
-            <h3 class="font-bold text-base text-slate-900" id="modal-savings-title">적금 등록</h3>
-            <form id="form-savings" onsubmit="saveSavings(event)" class="space-y-3">
-                <input type="hidden" id="sav-id">
-                <div>
-                    <label class="block font-semibold mb-1">적금 상품명</label>
-                    <input type="text" id="sav-name" required placeholder="예: 신한 적금 9단" class="w-full border rounded-lg p-2.5">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-semibold mb-1">납입 회차 (현재/총)</label>
-                        <div class="flex gap-1 items-center">
-                            <input type="number" id="sav-paid-count" value="3" class="w-1/2 border rounded-lg p-2.5 text-center">
-                            <span>/</span>
-                            <input type="number" id="sav-total-count" value="12" class="w-1/2 border rounded-lg p-2.5 text-center">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block font-semibold mb-1">월 납입액 (원)</label>
-                        <input type="number" id="sav-amount" required placeholder="200000" class="w-full border rounded-lg p-2.5">
-                    </div>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">매월 납입일 (1~31일)</label>
-                    <input type="number" id="sav-pay-day" min="1" max="31" value="10" class="w-full border rounded-lg p-2.5">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-semibold mb-1">기본 금리 (%)</label>
-                        <input type="number" step="0.1" id="sav-rate-base" required placeholder="3.0" class="w-full border rounded-lg p-2.5">
-                    </div>
-                    <div>
-                        <label class="block font-semibold mb-1">우대 금리 (%)</label>
-                        <input type="number" step="0.1" id="sav-rate-prime" placeholder="2.0" class="w-full border rounded-lg p-2.5">
-                    </div>
-                </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeModal('modal-savings')" class="w-1/2 border py-2.5 rounded-lg font-bold text-slate-500">취소</button>
-                    <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-lg font-bold">저장</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 6: 계좌 자산 등록/수정 모달 -->
-    <div id="modal-account" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4 text-xs">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4">
-            <h3 class="font-bold text-base text-slate-900" id="modal-account-title">계좌 추가</h3>
-            <form id="form-account" onsubmit="saveAccount(event)" class="space-y-3">
-                <input type="hidden" id="acc-id">
-                <div>
-                    <label class="block font-semibold mb-1">계좌/통장 이름</label>
-                    <input type="text" id="acc-name" required placeholder="예: 토스 CMA / 토스 파킹통장" class="w-full border rounded-lg p-2.5">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">종류</label>
-                    <select id="acc-type" class="w-full border rounded-lg p-2.5">
-                        <option value="CMA/파킹">CMA / 파킹통장</option>
-                        <option value="입출금">일반 입출금</option>
-                        <option value="증권">증권 / 투자</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">현재 잔액 (원)</label>
-                    <input type="number" id="acc-balance" required placeholder="0" class="w-full border rounded-lg p-2.5">
-                </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="closeModal('modal-account')" class="w-1/2 border py-2.5 rounded-lg font-bold text-slate-500">취소</button>
-                    <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-lg font-bold">저장</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- 자바스크립트 로직 -->
+    <!-- JavaScript logic -->
     <script>
-        // 초기 복합 데이터 구조
-        let appData = {
-            accounts: [
-                { id: 1, name: "모니모 종합 계좌", type: "입출금", balance: 1000000 },
-                { id: 2, name: "토스뱅크 파킹통장", type: "CMA/파킹", balance: 5000000 }
-            ],
-            cards: [
-                {
-                    id: 1,
-                    name: "신한 K-패스 체크카드",
-                    target: 300000,
-                    current: 180000,
-                    benefits: [
-                        { id: 101, title: "스타벅스 1만 원 이상 할인", targetCount: 4, usedCount: 1 },
-                        { id: 102, title: "쿠팡 2만 원 이상 할인", targetCount: 2, usedCount: 0 }
-                    ]
-                }
-            ],
-            savings: [
-                { id: 1, name: "신한 적금 9단", payDay: 10, amount: 200000, rateBase: 3.0, ratePrime: 2.0, paidCount: 4, totalCount: 12 }
-            ],
-            conditions: [
-                { id: 1, title: "모니모 CMA 100만 원 예치", target: "삼성증권", cycle: "lastDay", doneThisMonth: false },
-                { id: 2, title: "신한 체크카드 사용 실적 1회", target: "신한 적금 9단", cycle: "10", doneThisMonth: true }
-            ],
-            incomes: [{ id: 1, title: "알바비", amount: 600000, day: 15 }],
-            expenses: [{ id: 2, title: "통신비", amount: 45000, day: 25 }],
-            apptech: [
-                { id: 1, app: "토스", title: "만보기 걸음 수 채우기", done: false, monthlyDoneCount: 12 },
-                { id: 2, app: "모니모", title: "아침 기상 챌린지", done: true, monthlyDoneCount: 25 }
-            ],
-            calendarFilter: "all",
-            lastResetMonth: new Date().getMonth()
-        };
+        let cashFlowChartInstance = null;
 
-        let currentCalendarDate = new Date();
-        let selectedCalendarDay = new Date().getDate();
-
-        window.onload = function() {
-            loadLocalData();
-            checkMonthlyReset();
-            renderHeaderDate();
-            renderTodayAlerts();
-            renderDashboard();
-            renderCards();
-            renderApptech();
-            renderCalendar();
-            renderSavings();
-            renderAccounts();
-        };
-
-        function saveLocalData() {
-            localStorage.setItem('smart_finance_v2_data', JSON.stringify(appData));
-        }
-        function loadLocalData() {
-            const saved = localStorage.getItem('smart_finance_v2_data');
-            if (saved) {
-                appData = JSON.parse(saved);
-            }
-        }
-
-        function checkMonthlyReset() {
-            const currentMonth = new Date().getMonth();
-            if (appData.lastResetMonth !== currentMonth) {
-                appData.conditions.forEach(c => c.doneThisMonth = false);
-                appData.cards.forEach(card => card.benefits.forEach(b => b.usedCount = 0));
-                appData.apptech.forEach(a => { a.done = false; a.monthlyDoneCount = 0; });
-                appData.lastResetMonth = currentMonth;
-                saveLocalData();
-            }
-        }
-
-        function isTodayLastDay() {
-            const today = new Date();
-            const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-            return tomorrow.getDate() === 1;
-        }
-
-        function renderHeaderDate() {
-            const today = new Date();
-            document.getElementById('current-month-text').innerText = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
-        }
-
-        function renderTodayAlerts() {
-            const container = document.getElementById('today-alert-container');
-            container.innerHTML = '';
-
-            const isLastDay = isTodayLastDay();
-            const todayDay = new Date().getDate();
-
-            let pendingAlerts = appData.conditions.filter(c => {
-                if (c.doneThisMonth) return false;
-                if (c.cycle === 'lastDay' && isLastDay) return true;
-                if (c.cycle === String(todayDay)) return true;
-                return false;
-            });
-
-            if (pendingAlerts.length > 0) {
-                pendingAlerts.forEach(item => {
-                    container.innerHTML += `
-                        <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl flex items-center justify-between text-xs text-rose-800 shadow-sm animate-pulse">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-bell text-rose-600 text-sm"></i>
-                                <div><span class="font-bold">[🚨 오늘 당일 미션]</span> ${item.title}</div>
-                            </div>
-                            <button onclick="toggleConditionDone(${item.id})" class="bg-rose-600 text-white px-2.5 py-1 rounded-lg font-bold">완료</button>
-                        </div>
-                    `;
-                });
-            }
-        }
-
+        // Switching between tabs
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            const activeTab = document.getElementById(tabId);
+            if(activeTab) {
+                activeTab.classList.add('active');
+            }
 
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-indigo-600');
-                btn.classList.add('text-slate-400');
-            });
-            event.currentTarget.classList.remove('text-slate-400');
-            event.currentTarget.classList.add('text-indigo-600');
-        }
-
-        // 1. 대시보드
-        function renderDashboard() {
-            const totalIncomes = appData.incomes.reduce((s, i) => s + i.amount, 0);
-            const totalExpenses = appData.expenses.reduce((s, e) => s + e.amount, 0);
-            const totalSavings = appData.savings.reduce((s, v) => s + v.amount, 0);
-            const availableCash = totalIncomes - totalExpenses - totalSavings;
-
-            document.getElementById('dash-available-cash').innerText = `${availableCash.toLocaleString()} 원`;
-
-            const totalAssets = appData.accounts.reduce((s, a) => s + a.balance, 0);
-            document.getElementById('dash-total-assets').innerText = `${totalAssets.toLocaleString()} 원`;
-            document.getElementById('dash-total-savings').innerText = `${totalSavings.toLocaleString()} 원`;
-
-            const missionContainer = document.getElementById('dash-mission-list');
-            missionContainer.innerHTML = '';
-            if (appData.conditions.length === 0) {
-                missionContainer.innerHTML = '<p class="text-xs text-slate-400">등록된 우대금리 미션이 없습니다.</p>';
-            } else {
-                appData.conditions.forEach(item => {
-                    missionContainer.innerHTML += `
-                        <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-100">
-                            <div class="flex items-center gap-2">
-                                <button onclick="toggleConditionDone(${item.id})" class="text-base">
-                                    <i class="fa-${item.doneThisMonth ? 'solid fa-circle-check text-emerald-600' : 'regular fa-circle text-slate-400'}"></i>
-                                </button>
-                                <div>
-                                    <div class="font-bold text-slate-800">${item.title}</div>
-                                    <div class="text-[10px] text-slate-400">대상: ${item.target} • 주기: ${item.cycle === 'lastDay' ? '매달 말일' : item.cycle + '일'}</div>
-                                </div>
-                            </div>
-                            <button onclick="deleteCondition(${item.id})" class="text-slate-300 hover:text-rose-500"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    `;
-                });
+            if(tabId === 'cashflow') {
+                updateCashFlowChart();
             }
         }
 
-        function toggleConditionDone(id) {
-            const item = appData.conditions.find(c => c.id === id);
-            if (item) {
-                item.doneThisMonth = !item.doneThisMonth;
-                saveLocalData();
-                renderTodayAlerts();
-                renderDashboard();
-                renderSavings();
+        // Cash Flow Calculation and Chart rendering
+        function updateCashFlowChart() {
+            const startBalance = parseFloat(document.getElementById('startBalance').value) || 0;
+            const income = parseFloat(document.getElementById('monthlyIncome').value) || 0;
+            const expense = parseFloat(document.getElementById('monthlyExpense').value) || 0;
+            const months = parseInt(document.getElementById('projectionMonths').value) || 12;
+
+            const labels = ['현재'];
+            const baseData = [startBalance];
+            const optData = [startBalance];
+            const pessData = [startBalance];
+
+            let curBase = startBalance;
+            let curOpt = startBalance;
+            let curPess = startBalance;
+
+            // Scenario calculations over time
+            for (let i = 1; i <= months; i++) {
+                labels.push(`${i}개월 후`);
+
+                // Base Scenario: Net = Income - Expense
+                curBase += (income - expense);
+                baseData.push(curBase);
+
+                // Optimistic Scenario: Income +5%, Expense -15%
+                const optIncome = income * 1.05;
+                const optExpense = expense * 0.85;
+                curOpt += (optIncome - optExpense);
+                optData.push(curOpt);
+
+                // Pessimistic Scenario: Income -20%, Expense +20%
+                const pessIncome = income * 0.80;
+                const pessExpense = expense * 1.20;
+                curPess += (pessIncome - pessExpense);
+                pessData.push(curPess);
             }
-        }
 
-        function deleteCondition(id) {
-            appData.conditions = appData.conditions.filter(c => c.id !== id);
-            saveLocalData();
-            renderDashboard();
-            renderSavings();
-        }
+            // Update UI Summary Cards
+            document.getElementById('scenBaseTarget').innerText = Math.round(curBase).toLocaleString() + ' 원';
+            document.getElementById('scenOptTarget').innerText = Math.round(curOpt).toLocaleString() + ' 원';
+            document.getElementById('scenPessTarget').innerText = Math.round(curPess).toLocaleString() + ' 원';
 
-        // 2. 카드 & 다중 혜택 렌더링
-        function renderCards() {
-            const container = document.getElementById('card-list');
-            container.innerHTML = '';
+            // Chart Rendering
+            const ctx = document.getElementById('cashFlowChart').getContext('2d');
 
-            appData.cards.forEach(card => {
-                const percent = Math.min(100, Math.round((card.current / card.target) * 100));
-                const remaining = Math.max(0, card.target - card.current);
-
-                let benefitsHtml = '';
-                if (card.benefits && card.benefits.length > 0) {
-                    card.benefits.forEach(b => {
-                        benefitsHtml += `
-                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center justify-between text-xs mt-1.5">
-                                <div>
-                                    <span class="font-semibold text-slate-700">${b.title}</span>
-                                    <div class="text-[10px] text-slate-400">목표: 월 ${b.targetCount}회</div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button onclick="changeCardBenefitCount(${card.id}, ${b.id}, -1)" class="w-5 h-5 bg-white border rounded font-bold">-</button>
-                                    <span class="font-bold text-indigo-600 text-xs">${b.usedCount} / ${b.targetCount}</span>
-                                    <button onclick="changeCardBenefitCount(${card.id}, ${b.id}, 1)" class="w-5 h-5 bg-white border rounded font-bold">+</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    benefitsHtml = `<p class="text-[11px] text-slate-400 italic">등록된 개별 혜택이 없습니다.</p>`;
-                }
-
-                container.innerHTML += `
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-sm text-slate-900">${card.name}</h3>
-                                <p class="text-xs text-slate-500">목표 실적: ${card.target.toLocaleString()} 원</p>
-                            </div>
-                            <div class="flex gap-2 text-slate-400 text-xs">
-                                <button onclick="editCard(${card.id})" class="hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteCard(${card.id})" class="hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="flex justify-between text-xs font-semibold mb-1">
-                                <span class="text-indigo-600">${percent}% 달성</span>
-                                <span class="text-slate-500">남은 금액: ${remaining.toLocaleString()} 원</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-2">
-                                <div class="bg-indigo-600 h-2 rounded-full" style="width: ${percent}%"></div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1">
-                            <span class="text-xs font-bold text-slate-800">혜택별 사용 카운팅:</span>
-                            ${benefitsHtml}
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function changeCardBenefitCount(cardId, benefitId, delta) {
-            const card = appData.cards.find(c => c.id === cardId);
-            if (card) {
-                const b = card.benefits.find(item => item.id === benefitId);
-                if (b) {
-                    b.usedCount = Math.max(0, Math.min(b.targetCount, b.usedCount + delta));
-                    saveLocalData();
-                    renderCards();
-                }
+            if (cashFlowChartInstance) {
+                cashFlowChartInstance.destroy();
             }
-        }
 
-        function addBenefitInputRow(title = '', count = 4) {
-            const container = document.getElementById('card-benefits-inputs');
-            const rowId = Date.now() + Math.random();
-            const row = document.createElement('div');
-            row.className = 'flex items-center gap-1.5 benefit-input-row';
-            row.innerHTML = `
-                <input type="text" value="${title}" placeholder="혜택명 (예: 스타벅스 할인)" class="benefit-title w-full border rounded-lg p-2 text-xs" required>
-                <input type="number" value="${count}" placeholder="회수" class="benefit-count w-16 border rounded-lg p-2 text-xs text-center" required>
-                <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-rose-500 p-1"><i class="fa-solid fa-xmark"></i></button>
-            `;
-            container.appendChild(row);
-        }
-
-        function editCard(id) {
-            const card = appData.cards.find(c => c.id === id);
-            if (card) {
-                document.getElementById('card-id').value = card.id;
-                document.getElementById('card-name').value = card.name;
-                document.getElementById('card-target').value = card.target;
-                document.getElementById('card-current').value = card.current;
-
-                const container = document.getElementById('card-benefits-inputs');
-                container.innerHTML = '';
-                if (card.benefits && card.benefits.length > 0) {
-                    card.benefits.forEach(b => addBenefitInputRow(b.title, b.targetCount));
-                } else {
-                    addBenefitInputRow();
-                }
-                openCardModal();
-            }
-        }
-
-        function saveCard(e) {
-            e.preventDefault();
-            const id = document.getElementById('card-id').value;
-            const name = document.getElementById('card-name').value;
-            const target = parseInt(document.getElementById('card-target').value) || 0;
-            const current = parseInt(document.getElementById('card-current').value) || 0;
-
-            const benefits = [];
-            document.querySelectorAll('.benefit-input-row').forEach(row => {
-                const bTitle = row.querySelector('.benefit-title').value;
-                const bCount = parseInt(row.querySelector('.benefit-count').value) || 1;
-                if (bTitle) {
-                    benefits.push({ id: Date.now() + Math.random(), title: bTitle, targetCount: bCount, usedCount: 0 });
+            cashFlowChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '기본 시나리오',
+                            data: baseData,
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.2
+                        },
+                        {
+                            label: '낙관적 시나리오 (절약/수입증가)',
+                            data: optData,
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.2
+                        },
+                        {
+                            label: '비관적 시나리오 (비상상황)',
+                            data: pessData,
+                            borderColor: '#EF4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + '원';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return (value / 10000).toLocaleString() + '만원';
+                                }
+                            }
+                        }
+                    }
                 }
             });
-
-            if (id) {
-                const card = appData.cards.find(c => c.id == id);
-                if (card) {
-                    card.name = name; card.target = target; card.current = current;
-                    card.benefits = benefits;
-                }
-            } else {
-                appData.cards.push({ id: Date.now(), name, target, current, benefits });
-            }
-
-            saveLocalData();
-            closeModal('modal-card');
-            renderCards();
         }
 
-        function deleteCard(id) {
-            appData.cards = appData.cards.filter(c => c.id !== id);
-            saveLocalData();
-            renderCards();
-        }
-
-        // 3. 앱테크 루틴 (개별 추가/수정/삭제 및 월간 달성률 통계)
-        function renderApptech() {
-            const dailyContainer = document.getElementById('apptech-daily-list');
-            dailyContainer.innerHTML = '';
-
-            if (appData.apptech.length === 0) {
-                dailyContainer.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">등록된 앱테크 루틴이 없습니다.</p>';
-            } else {
-                appData.apptech.forEach(item => {
-                    dailyContainer.innerHTML += `
-                        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2.5">
-                                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleApptech(${item.id})" class="w-4 h-4 rounded text-indigo-600">
-                                <div>
-                                    <span class="font-bold bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[10px]">${item.app}</span>
-                                    <span class="${item.done ? 'line-through text-slate-400' : 'text-slate-800'} font-medium ml-1">${item.title}</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2 text-slate-400">
-                                <button onclick="editApptech(${item.id})" class="hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteApptech(${item.id})" class="hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            // 앱별 월간 통계
-            const statsContainer = document.getElementById('apptech-monthly-stats');
-            statsContainer.innerHTML = '';
-
-            const todayDay = new Date().getDate();
-            const grouped = {};
-
-            appData.apptech.forEach(item => {
-                if (!grouped[item.app]) grouped[item.app] = { totalDone: 0, count: 0 };
-                grouped[item.app].totalDone += (item.monthlyDoneCount || 0);
-                grouped[item.app].count += 1;
-            });
-
-            if (Object.keys(grouped).length === 0) {
-                statsContainer.innerHTML = '<p class="text-xs text-slate-400">데이터가 없습니다.</p>';
-            } else {
-                for (let appName in grouped) {
-                    const data = grouped[appName];
-                    const maxPossible = todayDay * data.count;
-                    const percent = Math.min(100, Math.round((data.totalDone / maxPossible) * 100)) || 0;
-
-                    statsContainer.innerHTML += `
-                        <div>
-                            <div class="flex justify-between text-xs mb-1">
-                                <span class="font-bold text-slate-700">${appName}</span>
-                                <span class="text-slate-500 font-semibold">${data.totalDone}회 수행 (${percent}%)</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-1.5">
-                                <div class="bg-emerald-500 h-1.5 rounded-full" style="width: ${percent}%"></div>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-        }
-
-        function toggleApptech(id) {
-            const item = appData.apptech.find(a => a.id === id);
-            if (item) {
-                item.done = !item.done;
-                if (item.done) {
-                    item.monthlyDoneCount = (item.monthlyDoneCount || 0) + 1;
-                } else {
-                    item.monthlyDoneCount = Math.max(0, (item.monthlyDoneCount || 1) - 1);
-                }
-                saveLocalData();
-                renderApptech();
-            }
-        }
-
-        function openApptechModal() {
-            document.getElementById('apptech-id').value = '';
-            document.getElementById('apptech-app').value = '';
-            document.getElementById('apptech-title').value = '';
-            document.getElementById('modal-apptech').classList.remove('hidden');
-        }
-
-        function editApptech(id) {
-            const item = appData.apptech.find(a => a.id === id);
-            if (item) {
-                document.getElementById('apptech-id').value = item.id;
-                document.getElementById('apptech-app').value = item.app;
-                document.getElementById('apptech-title').value = item.title;
-                document.getElementById('modal-apptech').classList.remove('hidden');
-            }
-        }
-
-        function saveApptech(e) {
-            e.preventDefault();
-            const id = document.getElementById('apptech-id').value;
-            const app = document.getElementById('apptech-app').value;
-            const title = document.getElementById('apptech-title').value;
-
-            if (id) {
-                const item = appData.apptech.find(a => a.id == id);
-                if (item) { item.app = app; item.title = title; }
-            } else {
-                appData.apptech.push({ id: Date.now(), app, title, done: false, monthlyDoneCount: 0 });
-            }
-
-            saveLocalData();
-            closeModal('modal-apptech');
-            renderApptech();
-        }
-
-        function deleteApptech(id) {
-            appData.apptech = appData.apptech.filter(a => a.id !== id);
-            saveLocalData();
-            renderApptech();
-        }
-
-        // 4. 금융 달력 (필터 및 직접 CRUD)
-        function setCalendarFilter(filter) {
-            appData.calendarFilter = filter;
-            ['all', 'income', 'expense'].forEach(f => {
-                const btn = document.getElementById(`cal-filter-${f}`);
-                if (f === filter) {
-                    btn.className = f === 'all' ? 'px-3 py-1 rounded-full bg-slate-900 text-white font-semibold' :
-                                    f === 'income' ? 'px-3 py-1 rounded-full bg-emerald-600 text-white font-semibold' :
-                                    'px-3 py-1 rounded-full bg-rose-600 text-white font-semibold';
-                } else {
-                    btn.className = 'px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold';
-                }
-            });
-            renderCalendar();
-        }
-
-        function renderCalendar() {
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-
-            document.getElementById('calendar-month-year').innerText = `${year}년 ${month + 1}월`;
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const lastDate = new Date(year, month + 1, 0).getDate();
-
-            const daysContainer = document.getElementById('calendar-days');
-            daysContainer.innerHTML = '';
-
-            for (let i = 0; i < firstDay; i++) {
-                daysContainer.innerHTML += `<div></div>`;
-            }
-
-            const filter = appData.calendarFilter;
-
-            for (let day = 1; day <= lastDate; day++) {
-                const hasIncome = (filter === 'all' || filter === 'income') && appData.incomes.some(i => i.day === day);
-                const hasExpense = (filter === 'all' || filter === 'expense') && appData.expenses.some(e => e.day === day);
-                const hasSavings = (filter === 'all' || filter === 'expense') && appData.savings.some(s => s.payDay === day);
-
-                const isSelected = day === selectedCalendarDay ? 'bg-indigo-600 text-white font-bold rounded-lg' : 'hover:bg-slate-100';
-
-                daysContainer.innerHTML += `
-                    <div onclick="selectCalendarDay(${day})" class="p-2 cursor-pointer relative ${isSelected}">
-                        <span>${day}</span>
-                        <div class="flex justify-center gap-0.5 mt-0.5">
-                            ${hasIncome ? '<span class="w-1 h-1 bg-emerald-500 rounded-full"></span>' : ''}
-                            ${hasExpense ? '<span class="w-1 h-1 bg-rose-500 rounded-full"></span>' : ''}
-                            ${hasSavings ? '<span class="w-1 h-1 bg-purple-500 rounded-full"></span>' : ''}
-                        </div>
-                    </div>
-                `;
-            }
-
-            renderSelectedDateItems();
-        }
-
-        function changeMonth(delta) {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
-            renderCalendar();
-        }
-
-        function selectCalendarDay(day) {
-            selectedCalendarDay = day;
-            renderCalendar();
-        }
-
-        function renderSelectedDateItems() {
-            const day = selectedCalendarDay;
-            document.getElementById('selected-date-text').innerText = `${currentCalendarDate.getMonth() + 1}월 ${day}일 금융 일정`;
-
-            const container = document.getElementById('selected-date-items');
-            container.innerHTML = '';
-
-            const filter = appData.calendarFilter;
-
-            const incomes = (filter === 'all' || filter === 'income') ? appData.incomes.filter(i => i.day === day) : [];
-            const expenses = (filter === 'all' || filter === 'expense') ? appData.expenses.filter(e => e.day === day) : [];
-            const savings = (filter === 'all' || filter === 'expense') ? appData.savings.filter(s => s.payDay === day) : [];
-
-            if (incomes.length === 0 && expenses.length === 0 && savings.length === 0) {
-                container.innerHTML = '<p class="text-slate-400 text-center py-2">등록된 일정이 없습니다.</p>';
-                return;
-            }
-
-            incomes.forEach(i => {
-                container.innerHTML += `
-                    <div class="flex justify-between items-center p-2.5 bg-emerald-50 text-emerald-800 rounded-lg">
-                        <span>[수입] ${i.title}</span>
-                        <div class="flex items-center gap-2">
-                            <b>+${i.amount.toLocaleString()} 원</b>
-                            <button onclick="deleteCalendarEvent('income', ${i.id})" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                `;
-            });
-            expenses.forEach(e => {
-                container.innerHTML += `
-                    <div class="flex justify-between items-center p-2.5 bg-rose-50 text-rose-800 rounded-lg">
-                        <span>[지출] ${e.title}</span>
-                        <div class="flex items-center gap-2">
-                            <b>-${e.amount.toLocaleString()} 원</b>
-                            <button onclick="deleteCalendarEvent('expense', ${e.id})" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                `;
-            });
-            savings.forEach(s => {
-                container.innerHTML += `
-                    <div class="flex justify-between items-center p-2.5 bg-purple-50 text-purple-800 rounded-lg">
-                        <span>[적금] ${s.name}</span>
-                        <b>-${s.amount.toLocaleString()} 원</b>
-                    </div>
-                `;
-            });
-        }
-
-        function openCalendarEventModal() {
-            document.getElementById('cal-event-day').value = selectedCalendarDay;
-            document.getElementById('modal-cal-event').classList.remove('hidden');
-        }
-
-        function saveCalendarEvent(e) {
-            e.preventDefault();
-            const type = document.getElementById('cal-event-type').value;
-            const title = document.getElementById('cal-event-title').value;
-            const amount = parseInt(document.getElementById('cal-event-amount').value) || 0;
-            const day = parseInt(document.getElementById('cal-event-day').value) || selectedCalendarDay;
-
-            if (type === 'income') {
-                appData.incomes.push({ id: Date.now(), title, amount, day });
-            } else {
-                appData.expenses.push({ id: Date.now(), title, amount, day });
-            }
-
-            saveLocalData();
-            closeModal('modal-cal-event');
-            renderCalendar();
-            renderDashboard();
-        }
-
-        function deleteCalendarEvent(type, id) {
-            if (type === 'income') {
-                appData.incomes = appData.incomes.filter(i => i.id !== id);
-            } else {
-                appData.expenses = appData.expenses.filter(e => e.id !== id);
-            }
-            saveLocalData();
-            renderCalendar();
-            renderDashboard();
-        }
-
-        // 5. 적금 트래커 (납입 회차 막대 그래프 & 우대 미션 태그)
-        function renderSavings() {
-            const container = document.getElementById('savings-list');
-            container.innerHTML = '';
-
-            appData.savings.forEach(item => {
-                const totalRate = (item.rateBase + (item.ratePrime || 0)).toFixed(1);
-                const paid = item.paidCount || 1;
-                const total = item.totalCount || 12;
-                const percent = Math.min(100, Math.round((paid / total) * 100));
-
-                // 적금 명칭과 관련된 우대금리 미션 필터링
-                const relatedMissions = appData.conditions.filter(c => c.target.includes(item.name) || item.name.includes(c.target));
-
-                let missionTags = '';
-                if (relatedMissions.length > 0) {
-                    relatedMissions.forEach(m => {
-                        missionTags += m.doneThisMonth
-                            ? `<span class="bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded text-[10px]">✓ ${m.title} 달성</span>`
-                            : `<span class="bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded text-[10px]">! ${m.title} 필요</span>`;
-                    });
-                } else {
-                    missionTags = `<span class="text-[10px] text-slate-400">연동된 우대 미션 없음</span>`;
-                }
-
-                container.innerHTML += `
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 text-xs">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="font-bold text-sm text-slate-900">${item.name}</div>
-                                <div class="text-slate-500 mt-0.5">매월 ${item.payDay || 10}일 납입 • 월 ${item.amount.toLocaleString()} 원</div>
-                            </div>
-                            <div class="flex gap-2 text-slate-400">
-                                <button onclick="editSavings(${item.id})" class="hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteSavings(${item.id})" class="hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- 납입 회차 진행률 Progress Bar -->
-                        <div>
-                            <div class="flex justify-between text-xs font-semibold mb-1">
-                                <span class="text-purple-700 font-bold">납입 진행: ${paid}회 / 총 ${total}회 (${percent}%)</span>
-                                <span class="text-slate-500">최고 연 ${totalRate}%</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-2">
-                                <div class="bg-purple-600 h-2 rounded-full" style="width: ${percent}%"></div>
-                            </div>
-                        </div>
-
-                        <!-- 우대금리 미션 태그 -->
-                        <div class="pt-1 border-t border-slate-100 flex items-center gap-1.5 flex-wrap">
-                            <span class="font-bold text-slate-500 text-[10px]">우대조건:</span>
-                            ${missionTags}
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function editSavings(id) {
-            const sav = appData.savings.find(s => s.id === id);
-            if (sav) {
-                document.getElementById('sav-id').value = sav.id;
-                document.getElementById('sav-name').value = sav.name;
-                document.getElementById('sav-amount').value = sav.amount;
-                document.getElementById('sav-pay-day').value = sav.payDay || 10;
-                document.getElementById('sav-rate-base').value = sav.rateBase;
-                document.getElementById('sav-rate-prime').value = sav.ratePrime;
-                document.getElementById('sav-paid-count').value = sav.paidCount || 1;
-                document.getElementById('sav-total-count').value = sav.totalCount || 12;
-                openSavingsModal();
-            }
-        }
-
-        function saveSavings(e) {
-            e.preventDefault();
-            const id = document.getElementById('sav-id').value;
-            const name = document.getElementById('sav-name').value;
-            const amount = parseInt(document.getElementById('sav-amount').value) || 0;
-            const payDay = parseInt(document.getElementById('sav-pay-day').value) || 10;
-            const rateBase = parseFloat(document.getElementById('sav-rate-base').value) || 0;
-            const ratePrime = parseFloat(document.getElementById('sav-rate-prime').value) || 0;
-            const paidCount = parseInt(document.getElementById('sav-paid-count').value) || 1;
-            const totalCount = parseInt(document.getElementById('sav-total-count').value) || 12;
-
-            if (id) {
-                const sav = appData.savings.find(s => s.id == id);
-                if (sav) {
-                    sav.name = name; sav.amount = amount; sav.payDay = payDay;
-                    sav.rateBase = rateBase; sav.ratePrime = ratePrime;
-                    sav.paidCount = paidCount; sav.totalCount = totalCount;
-                }
-            } else {
-                appData.savings.push({ id: Date.now(), name, amount, payDay, rateBase, ratePrime, paidCount, totalCount });
-            }
-
-            saveLocalData();
-            closeModal('modal-savings');
-            renderSavings();
-            renderDashboard();
-        }
-
-        function deleteSavings(id) {
-            appData.savings = appData.savings.filter(s => s.id !== id);
-            saveLocalData();
-            renderSavings();
-            renderDashboard();
-        }
-
-        // 6. 계좌 자산 렌더링
-        function renderAccounts() {
-            const container = document.getElementById('account-list');
-            container.innerHTML = '';
-
-            appData.accounts.forEach(acc => {
-                container.innerHTML += `
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center text-xs">
-                        <div>
-                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${acc.type}</span>
-                            <div class="font-bold text-sm text-slate-900 mt-1">${acc.name}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-extrabold text-sm text-slate-900">${acc.balance.toLocaleString()} 원</div>
-                            <div class="flex justify-end gap-2 text-slate-400 mt-1">
-                                <button onclick="editAccount(${acc.id})" class="hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteAccount(${acc.id})" class="hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function openConditionModal() { document.getElementById('modal-condition').classList.remove('hidden'); }
-        function openCardModal() {
-            document.getElementById('card-id').value = '';
-            document.getElementById('card-name').value = '';
-            document.getElementById('card-target').value = '';
-            document.getElementById('card-current').value = '';
-            document.getElementById('card-benefits-inputs').innerHTML = '';
-            addBenefitInputRow();
-            document.getElementById('modal-card').classList.remove('hidden');
-        }
-        function openSavingsModal() { document.getElementById('modal-savings').classList.remove('hidden'); }
-        function openAccountModal() { document.getElementById('modal-account').classList.remove('hidden'); }
-
-        function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
-
-        function saveCondition(e) {
-            e.preventDefault();
-            const id = document.getElementById('cond-id').value;
-            const title = document.getElementById('cond-title').value;
-            const target = document.getElementById('cond-target').value;
-            const cycle = document.getElementById('cond-cycle').value;
-
-            if (id) {
-                const cond = appData.conditions.find(c => c.id == id);
-                if (cond) { cond.title = title; cond.target = target; cond.cycle = cycle; }
-            } else {
-                appData.conditions.push({ id: Date.now(), title, target, cycle, doneThisMonth: false });
-            }
-
-            saveLocalData();
-            closeModal('modal-condition');
-            renderDashboard();
-            renderTodayAlerts();
-            renderSavings();
-        }
-
-        function saveAccount(e) {
-            e.preventDefault();
-            const id = document.getElementById('acc-id').value;
-            const name = document.getElementById('acc-name').value;
-            const type = document.getElementById('acc-type').value;
-            const balance = parseInt(document.getElementById('acc-balance').value) || 0;
-
-            if (id) {
-                const acc = appData.accounts.find(a => a.id == id);
-                if (acc) { acc.name = name; acc.type = type; acc.balance = balance; }
-            } else {
-                appData.accounts.push({ id: Date.now(), name, type, balance });
-            }
-
-            saveLocalData();
-            closeModal('modal-account');
-            renderAccounts();
-            renderDashboard();
-        }
-
-        function editAccount(id) {
-            const acc = appData.accounts.find(a => a.id === id);
-            if (acc) {
-                document.getElementById('acc-id').value = acc.id;
-                document.getElementById('acc-name').value = acc.name;
-                document.getElementById('acc-type').value = acc.type;
-                document.getElementById('acc-balance').value = acc.balance;
-                openAccountModal();
-            }
-        }
-
-        function deleteAccount(id) {
-            appData.accounts = appData.accounts.filter(a => a.id !== id);
-            saveLocalData();
-            renderAccounts();
-            renderDashboard();
-        }
+        // Initialize on page load
+        window.onload = function() {
+            updateCashFlowChart();
+        };
     </script>
 </body>
 </html>
