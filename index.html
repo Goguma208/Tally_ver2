@@ -20,9 +20,6 @@
             <h1 class="text-xl font-bold text-slate-900">자산 &amp; 앱테크 통합 관리</h1>
             <p class="text-xs text-slate-500">목돈 운용 &amp; 매일 루틴 챙기기</p>
         </div>
-        <button onclick="openModal('quickAdd')" class="bg-indigo-600 text-white p-2.5 rounded-full shadow-lg hover:bg-indigo-700 active:scale-95 transition">
-            <i class="ph ph-plus text-xl font-bold"></i>
-        </button>
     </header>
 
     <!-- 메인 컨텐츠 영역 -->
@@ -32,7 +29,7 @@
         <section id="tab-dashboard" class="tab-content space-y-5">
             <div onclick="switchTab('calendar')" class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-2xl p-5 text-white shadow-xl cursor-pointer transform active:scale-98 transition">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs opacity-80 font-medium">이번 달 실질 가용 현금</span>
+                    <span class="text-xs opacity-80 font-medium">이번 달 순현금흐름 (가용 현금)</span>
                     <i class="ph ph-caret-right text-sm"></i>
                 </div>
                 <div class="text-3xl font-extrabold tracking-tight" id="dash-available">0원</div>
@@ -58,17 +55,31 @@
                     <div class="text-lg font-bold text-slate-900" id="dash-card-status">0 / 0 개</div>
                 </div>
             </div>
+
+            <!-- 고정 수입/지출 관리 섹션 -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-slate-900"><i class="ph ph-arrows-down-up text-indigo-600 mr-1"></i> 고정 수입 / 지출 항목</h3>
+                    <button onclick="openCashflowModal()" class="text-xs text-indigo-600 font-bold flex items-center">
+                        <i class="ph ph-plus-circle text-base mr-1"></i> 추가
+                    </button>
+                </div>
+                <div class="space-y-2" id="cashflow-list"></div>
+            </div>
         </section>
 
         <!-- [TAB 2] 앱테크 루틴 -->
         <section id="tab-apptech" class="tab-content hidden space-y-4">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg font-bold text-slate-900">앱테크 체크리스트</h2>
-                <div class="flex space-x-1 text-xs">
-                    <button onclick="setApptechView('daily')" id="btn-apptech-daily" class="px-3 py-1 rounded-full bg-indigo-600 text-white font-medium">데일리</button>
-                    <button onclick="setApptechView('weekly')" id="btn-apptech-weekly" class="px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium">주별</button>
-                    <button onclick="setApptechView('monthly')" id="btn-apptech-monthly" class="px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium">월별</button>
-                </div>
+                <button onclick="openApptechModal()" class="text-xs text-indigo-600 font-bold flex items-center">
+                    <i class="ph ph-plus-circle text-base mr-1"></i> 미션 추가
+                </button>
+            </div>
+            <div class="flex space-x-1 text-xs mb-2">
+                <button onclick="setApptechView('daily')" id="btn-apptech-daily" class="px-3 py-1 rounded-full bg-indigo-600 text-white font-medium">데일리</button>
+                <button onclick="setApptechView('weekly')" id="btn-apptech-weekly" class="px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium">주별</button>
+                <button onclick="setApptechView('monthly')" id="btn-apptech-monthly" class="px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium">월별</button>
             </div>
             <div class="space-y-4" id="apptech-list"></div>
         </section>
@@ -94,7 +105,7 @@
             </div>
         </section>
 
-        <!-- [TAB 4] 카드 & 실적 혜택 (신규) -->
+        <!-- [TAB 4] 카드 & 실적 혜택 -->
         <section id="tab-cards" class="tab-content hidden space-y-4">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg font-bold text-slate-900">카드 실적 &amp; 혜택</h2>
@@ -158,42 +169,66 @@
         </div>
     </nav>
 
-    <!-- 모달: 빠른 추가 -->
-    <div id="modal-quickAdd" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end justify-center">
+    <!-- 모달: 고정 수입/지출 -->
+    <div id="modal-cashflow" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end justify-center">
         <div class="bg-white rounded-t-2xl p-6 w-full max-w-md space-y-4 max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="font-bold text-slate-900">항목 추가</h3>
-                <button onclick="closeModal('quickAdd')" class="text-slate-400 text-lg"><i class="ph ph-x"></i></button>
+                <h3 class="font-bold text-slate-900" id="cashflow-modal-title">수입 / 지출 항목 관리</h3>
+                <button onclick="closeModal('cashflow')" class="text-slate-400 text-lg"><i class="ph ph-x"></i></button>
             </div>
+            <input type="hidden" id="cashflow-edit-id">
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="block font-semibold mb-1">유형</label>
-                    <select id="quick-type" onchange="toggleQuickFields()" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                        <option value="income">예정 수입</option>
-                        <option value="expense">고정 지출</option>
-                        <option value="apptech">앱테크 미션</option>
+                    <select id="cashflow-type" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                        <option value="income">수입</option>
+                        <option value="expense">지출</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block font-semibold mb-1">항목명 / 미션 내용</label>
-                    <input type="text" id="quick-title" placeholder="예: 출석체크, 1만보 걷기" class="w-full p-2.5 border rounded-lg">
+                    <label class="block font-semibold mb-1">항목명</label>
+                    <input type="text" id="cashflow-title" placeholder="예: 월급, 쿠팡 구독료" class="w-full p-2.5 border rounded-lg">
                 </div>
-                <div id="field-amount">
-                    <label class="block font-semibold mb-1">금액 (원)</label>
-                    <input type="number" id="quick-amount" placeholder="0" class="w-full p-2.5 border rounded-lg">
-                </div>
-                <div id="field-day">
-                    <label class="block font-semibold mb-1">발생일 (매월 며칠)</label>
-                    <input type="number" id="quick-day" placeholder="1~31" min="1" max="31" class="w-full p-2.5 border rounded-lg">
-                </div>
-                <div id="field-apptech" class="hidden space-y-3">
+                <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block font-semibold mb-1">앱 / 플랫폼 이름</label>
-                        <input type="text" id="quick-apptech-appName" placeholder="예: 토스, 모니모, 캐시워크" class="w-full p-2.5 border rounded-lg">
+                        <label class="block font-semibold mb-1">금액 (원)</label>
+                        <input type="number" id="cashflow-amount" placeholder="0" class="w-full p-2.5 border rounded-lg">
                     </div>
                     <div>
+                        <label class="block font-semibold mb-1">발생일 (매월 며칠)</label>
+                        <input type="number" id="cashflow-day" placeholder="17" min="1" max="31" class="w-full p-2.5 border rounded-lg">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">비고 / 조건 메모</label>
+                    <input type="text" id="cashflow-memo" placeholder="예: 국민은행 계좌 입금" class="w-full p-2.5 border rounded-lg">
+                </div>
+                <button onclick="saveCashflow()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달: 앱테크 미션 -->
+    <div id="modal-apptech" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end justify-center">
+        <div class="bg-white rounded-t-2xl p-6 w-full max-w-md space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900" id="apptech-modal-title">앱테크 미션 등록</h3>
+                <button onclick="closeModal('apptech')" class="text-slate-400 text-lg"><i class="ph ph-x"></i></button>
+            </div>
+            <input type="hidden" id="apptech-edit-id">
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">앱 / 플랫폼명</label>
+                    <input type="text" id="apptech-app" placeholder="예: 토스, 모니모, 캐시워크" class="w-full p-2.5 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">미션 내용</label>
+                    <input type="text" id="apptech-title" placeholder="예: 만보기 1만보, 출석체크" class="w-full p-2.5 border rounded-lg">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
                         <label class="block font-semibold mb-1">주기</label>
-                        <select id="quick-apptech-cycle" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                        <select id="apptech-cycle" class="w-full p-2.5 border rounded-lg bg-slate-50">
                             <option value="daily">매일</option>
                             <option value="weekly">매주</option>
                             <option value="monthly">매월</option>
@@ -201,10 +236,10 @@
                     </div>
                     <div>
                         <label class="block font-semibold mb-1">알림 시간 (선택)</label>
-                        <input type="time" id="quick-apptech-time" class="w-full p-2.5 border rounded-lg">
+                        <input type="time" id="apptech-time" class="w-full p-2.5 border rounded-lg">
                     </div>
                 </div>
-                <button onclick="saveQuickAdd()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
+                <button onclick="saveApptech()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
             </div>
         </div>
     </div>
@@ -220,21 +255,21 @@
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="block font-semibold mb-1">카드명</label>
-                    <input type="text" id="card-name" placeholder="예: 신한 딥드림, 국민 톡톡카드" class="w-full p-2.5 border rounded-lg">
+                    <input type="text" id="card-name" placeholder="예: 우리은행 주사용 카드" class="w-full p-2.5 border rounded-lg">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-semibold mb-1">목표 실적 (원)</label>
-                        <input type="number" id="card-target" placeholder="300000" class="w-full p-2.5 border rounded-lg">
+                        <input type="number" id="card-target" placeholder="200000" class="w-full p-2.5 border rounded-lg">
                     </div>
                     <div>
                         <label class="block font-semibold mb-1">현재 사용액 (원)</label>
-                        <input type="number" id="card-current" placeholder="120000" class="w-full p-2.5 border rounded-lg">
+                        <input type="number" id="card-current" placeholder="0" class="w-full p-2.5 border rounded-lg">
                     </div>
                 </div>
                 <div>
                     <label class="block font-semibold mb-1">실적 달성 혜택 메모</label>
-                    <textarea id="card-benefit" rows="3" placeholder="예: 적금 우대금리 +1.0%p 적용, 커피 20% 할인, OTT 캐시백 3천원" class="w-full p-2.5 border rounded-lg"></textarea>
+                    <textarea id="card-benefit" rows="3" placeholder="예: 매달 실적 20만원 달성 시 우대 혜택 적용" class="w-full p-2.5 border rounded-lg"></textarea>
                 </div>
                 <button onclick="saveCard()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
             </div>
@@ -252,7 +287,7 @@
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="block font-semibold mb-1">적금 상품명</label>
-                    <input type="text" id="savings-name" placeholder="예: 청년미래적금, 팝콘적금" class="w-full p-2.5 border rounded-lg">
+                    <input type="text" id="savings-name" placeholder="예: 웰컴 적금, Npay우리 적금" class="w-full p-2.5 border rounded-lg">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
@@ -286,11 +321,11 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-semibold mb-1">기본 금리 (%)</label>
-                        <input type="number" step="0.1" id="savings-rate-base" placeholder="3.5" class="w-full p-2.5 border rounded-lg">
+                        <input type="number" step="0.1" id="savings-rate-base" placeholder="1.0" class="w-full p-2.5 border rounded-lg">
                     </div>
                     <div>
                         <label class="block font-semibold mb-1">우대 금리 (%)</label>
-                        <input type="number" step="0.1" id="savings-rate-bonus" placeholder="1.0" class="w-full p-2.5 border rounded-lg">
+                        <input type="number" step="0.1" id="savings-rate-bonus" placeholder="6.0" class="w-full p-2.5 border rounded-lg">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
@@ -302,6 +337,10 @@
                         <label class="block font-semibold mb-1">만기일</label>
                         <input type="date" id="savings-end" class="w-full p-2.5 border rounded-lg">
                     </div>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">우대 조건 및 특징 메모</label>
+                    <textarea id="savings-memo" rows="2" placeholder="예: 평잔 50만원 유지 및 자동이체 8회 달성 시 7%" class="w-full p-2.5 border rounded-lg"></textarea>
                 </div>
                 <button onclick="saveSavings()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
             </div>
@@ -319,7 +358,7 @@
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="block font-semibold mb-1">통장 / 계좌명</label>
-                    <input type="text" id="account-name" placeholder="예: 우리은행 주계좌, Npay 파킹통장" class="w-full p-2.5 border rounded-lg">
+                    <input type="text" id="account-name" placeholder="예: 웰컴저축은행 통장" class="w-full p-2.5 border rounded-lg">
                 </div>
                 <div>
                     <label class="block font-semibold mb-1">현재 잔액 (원)</label>
@@ -330,8 +369,12 @@
                     <select id="account-type" class="w-full p-2.5 border rounded-lg bg-slate-50">
                         <option value="checking">입출금 통장</option>
                         <option value="cma">CMA / 파킹통장</option>
-                        <option value="investment">증권 / ISA</option>
+                        <option value="investment">증권 / 주식 / ISA</option>
                     </select>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">우대 조건 및 특이사항 메모</label>
+                    <input type="text" id="account-memo" placeholder="예: 평잔 50만원 유지 필수, 카드실적 20만원" class="w-full p-2.5 border rounded-lg">
                 </div>
                 <button onclick="saveAccount()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
             </div>
@@ -340,25 +383,68 @@
 
     <!-- JavaScript 로직 -->
     <script>
-        let appData = {
-            accounts: JSON.parse(localStorage.getItem('app_accounts')) || [
-                { id: 1, name: "우리은행 메인통장", balance: 1500000, type: "checking" },
-                { id: 2, name: "Npay 4% 파킹통장", balance: 5000000, type: "cma" }
+        // 초기 자산 데이터 세팅 (사용자 제공 내역 기반)
+        const initialData = {
+            accounts: [
+                { id: 1, name: "토스뱅크 통장", balance: 0, type: "checking", memo: "" },
+                { id: 2, name: "국민은행 통장", balance: 9003, type: "checking", memo: "청약/연금저축 자동이체 계좌" },
+                { id: 3, name: "우리은행 통장", balance: 53117, type: "checking", memo: "주사용 계좌 (매달 카드실적 20만원 필요)" },
+                { id: 4, name: "웰컴저축은행 통장", balance: 4801384, type: "cma", memo: "27.03.19까지 평잔 50만 유지 필수 (적금 우대용). 매달 19일 적금 20만 자동이체" },
+                { id: 5, name: "하나은행 통장", balance: 0, type: "checking", memo: "" },
+                { id: 6, name: "신한은행 통장", balance: 0, type: "checking", memo: "" },
+                { id: 7, name: "Npay머니 통장", balance: 2000487, type: "cma", memo: "가입 1년간 200만원 한도 연 4.0%" },
+                { id: 8, name: "농협은행 통장", balance: 0, type: "checking", memo: "" },
+                { id: 9, name: "삼성증권 종합", balance: 0, type: "investment", memo: "말일 기준 100만원 잔액 유지 시 CMA +0.4% 우대" },
+                { id: 10, name: "삼성증권 CMA 계좌", balance: 2000000, type: "cma", memo: "기본 3.7%, 말일 종합계좌 100만 보유시 우대 4.1%" },
+                { id: 11, name: "im은행 통장", balance: 0, type: "checking", memo: "" },
+                { id: 12, name: "메리츠증권 (미국주식+예수금)", balance: 5500000, type: "investment", memo: "원화 예수금 연 2.5% 적용" },
+                { id: 13, name: "NH투자증권 ISA계좌", balance: 3418110, type: "investment", memo: "ETF 보유 + 예수금 98,110원 (월/금 자동매수)" },
+                { id: 14, name: "NH투자증권 CMA계좌", balance: 113, type: "cma", memo: "이율 2%, S&P500 1주 보유" },
+                { id: 15, name: "토스증권", balance: 0, type: "investment", memo: "반도체 ETF 2주, 마벨테크놀로지 1주 보유" }
             ],
-            cards: JSON.parse(localStorage.getItem('app_cards')) || [
-                { id: 1, name: "신한 딥드림 체크", target: 300000, current: 210000, benefit: "적금 우대금리 +1.0%p 적용 및 주유 1천원 할인" }
+            cards: [
+                { id: 1, name: "우리은행 카드의정석", target: 200000, current: 0, benefit: "주사용 계좌 결제 실적 20만원 충족용" },
+                { id: 2, name: "신한 체크카드", target: 1, current: 0, benefit: "신한 적금9단 우대금리 조건 (+1.0%p)" }
             ],
-            savings: JSON.parse(localStorage.getItem('app_savings')) || [],
-            incomes: JSON.parse(localStorage.getItem('app_incomes')) || [
-                { id: 1, title: "월급", amount: 1300000, day: 17 }
+            savings: [
+                { id: 1, name: "주택청약종합저축", amount: 20000, cycle: "monthly", day: 3, rateBase: 2.8, rateBonus: 0, startDate: "", endDate: "", memo: "국민은행 자동이체 / 납입 누적 9,650,000원" },
+                { id: 2, name: "웰컴 적금", amount: 200000, cycle: "monthly", day: 19, rateBase: 1.0, rateBonus: 6.0, startDate: "2026-03-19", endDate: "2027-03-19", memo: "웰컴통장 평잔 50만(+4%) + 8회 이상 자동이체(+2%) / 현재 1,400,000원" },
+                { id: 3, name: "Npay우리 적금", amount: 300000, cycle: "monthly", day: 17, rateBase: 4.5, rateBonus: 0, startDate: "2026-04-17", endDate: "2026-10-17", memo: "6개월 만기 / 납입 누적 1,800,000원" },
+                { id: 4, name: "삼성 팝콘저축_젤리콤보", amount: 0, cycle: "weekly", weekday: 1, rateBase: 3.0, rateBonus: 5.0, startDate: "2026-03-31", endDate: "2026-09-30", memo: "만기 완납 3,600,000원 / 만기 예상 3,656,580원" },
+                { id: 5, name: "삼성 팝콘저축_여행콤보", amount: 0, cycle: "weekly", weekday: 1, rateBase: 3.0, rateBonus: 5.0, startDate: "2026-03-31", endDate: "2026-09-30", memo: "만기 완납 3,600,000원 / 만기 예상 3,656,580원" },
+                { id: 6, name: "삼성 연금저축", amount: 100000, cycle: "monthly", day: 5, rateBase: 0, rateBonus: 0, startDate: "2024-09-03", endDate: "", memo: "국민은행 자동이체 / 현재 25회 납부" },
+                { id: 7, name: "신한 적금9단", amount: 300000, cycle: "monthly", day: 18, rateBase: 8.0, rateBonus: 1.0, startDate: "2026-09-19", endDate: "2027-09-19", memo: "신한 체크카드 1원 이상 사용 시 우대 / 납입 300,000원" },
+                { id: 8, name: "im뱅크 더쿠폰적금", amount: 200000, cycle: "monthly", day: 18, rateBase: 11.0, rateBonus: 0, startDate: "2026-09-19", endDate: "2027-03-19", memo: "6개월 만기 / 납입 200,000원" }
             ],
-            expenses: JSON.parse(localStorage.getItem('app_expenses')) || [
-                { id: 1, title: "생활비", amount: 900000, day: 1 }
+            incomes: [
+                { id: 1, title: "월급", amount: 1300000, day: 17, memo: "고정 수입" },
+                { id: 2, title: "청년월세지원", amount: 200000, day: 23, memo: "지원금" },
+                { id: 3, title: "용돈 (변동)", amount: 400000, day: 25, memo: "아빠 용돈 (변동 위험)" }
             ],
-            apptech: JSON.parse(localStorage.getItem('app_apptech')) || [
+            expenses: [
+                { id: 1, title: "쿠팡 구독료", amount: 7980, day: 1, memo: "" },
+                { id: 2, title: "배민 구독료", amount: 1990, day: 10, memo: "" },
+                { id: 3, title: "네이버 클라우드", amount: 1650, day: 20, memo: "" },
+                { id: 4, title: "애플 iCloud", amount: 4400, day: 13, memo: "" },
+                { id: 5, title: "구글 클라우드", amount: 3900, day: 23, memo: "" },
+                { id: 6, title: "생활비", amount: 900000, day: 1, memo: "월 예상 생활비" },
+                { id: 7, title: "통신요금", amount: 60000, day: 30, memo: "말일 출금" },
+                { id: 8, title: "보험료", amount: 160000, day: 4, memo: "4일 출금" }
+            ],
+            apptech: [
                 { id: 1, appName: "토스", title: "만보기 1만보", cycle: "daily", time: "20:00", done: false },
-                { id: 2, appName: "모니모", title: "기상 미션 & 광고 시청", cycle: "daily", time: "08:00", done: false }
+                { id: 2, appName: "모니모", title: "기상 미션 & 광고 시청", cycle: "daily", time: "08:00", done: false },
+                { id: 3, appName: "Npay우리", title: "주1회 출석체크 스탬프", cycle: "weekly", time: "10:00", done: false }
             ]
+        };
+
+        let appData = {
+            accounts: JSON.parse(localStorage.getItem('app_accounts')) || initialData.accounts,
+            cards: JSON.parse(localStorage.getItem('app_cards')) || initialData.cards,
+            savings: JSON.parse(localStorage.getItem('app_savings')) || initialData.savings,
+            incomes: JSON.parse(localStorage.getItem('app_incomes')) || initialData.incomes,
+            expenses: JSON.parse(localStorage.getItem('app_expenses')) || initialData.expenses,
+            apptech: JSON.parse(localStorage.getItem('app_apptech')) || initialData.apptech
         };
 
         let curYear = new Date().getFullYear();
@@ -389,7 +475,216 @@
         function openModal(id) { document.getElementById(`modal-${id}`).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(`modal-${id}`).classList.add('hidden'); }
 
-        // --- 카드 & 실적 혜택 CRUD ---
+        // --- 고정 수입/지출 CRUD ---
+        function openCashflowModal(id = null) {
+            document.getElementById('cashflow-edit-id').value = id || '';
+            document.getElementById('cashflow-modal-title').innerText = id ? '수입/지출 항목 수정' : '수입/지출 항목 추가';
+
+            if(id) {
+                const isInc = appData.incomes.find(i => i.id === id);
+                const isExp = appData.expenses.find(e => e.id === id);
+                const item = isInc || isExp;
+                if(item) {
+                    document.getElementById('cashflow-type').value = isInc ? 'income' : 'expense';
+                    document.getElementById('cashflow-title').value = item.title;
+                    document.getElementById('cashflow-amount').value = item.amount;
+                    document.getElementById('cashflow-day').value = item.day;
+                    document.getElementById('cashflow-memo').value = item.memo || '';
+                }
+            } else {
+                document.getElementById('cashflow-type').value = 'income';
+                document.getElementById('cashflow-title').value = '';
+                document.getElementById('cashflow-amount').value = '';
+                document.getElementById('cashflow-day').value = '';
+                document.getElementById('cashflow-memo').value = '';
+            }
+            openModal('cashflow');
+        }
+
+        function saveCashflow() {
+            const id = document.getElementById('cashflow-edit-id').value;
+            const type = document.getElementById('cashflow-type').value;
+            const title = document.getElementById('cashflow-title').value.trim();
+            const amount = Number(document.getElementById('cashflow-amount').value) || 0;
+            const day = Number(document.getElementById('cashflow-day').value) || 1;
+            const memo = document.getElementById('cashflow-memo').value.trim();
+
+            if(!title) return alert('항목명을 입력하세요.');
+
+            if(id) {
+                appData.incomes = appData.incomes.filter(i => i.id !== Number(id));
+                appData.expenses = appData.expenses.filter(e => e.id !== Number(id));
+            }
+
+            const itemObj = { id: id ? Number(id) : Date.now(), title, amount, day, memo };
+            if(type === 'income') appData.incomes.push(itemObj);
+            else appData.expenses.push(itemObj);
+
+            saveData();
+            closeModal('cashflow');
+        }
+
+        function deleteCashflow(id) {
+            if(confirm('이 항목을 삭제하시겠습니까?')) {
+                appData.incomes = appData.incomes.filter(i => i.id !== id);
+                appData.expenses = appData.expenses.filter(e => e.id !== id);
+                saveData();
+            }
+        }
+
+        function renderCashflowList() {
+            const listEl = document.getElementById('cashflow-list');
+            listEl.innerHTML = '';
+
+            appData.incomes.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-2 rounded-lg bg-emerald-50 text-xs border border-emerald-100';
+                div.innerHTML = `
+                    <div>
+                        <span class="font-bold text-emerald-800">[수입] ${item.title}</span>
+                        <span class="text-slate-400 text-[10px] ml-1">(매달 ${item.day}일)</span>
+                        ${item.memo ? `<p class="text-[10px] text-emerald-600">${item.memo}</p>` : ''}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-emerald-700">+${Number(item.amount).toLocaleString()}원</span>
+                        <button onclick="openCashflowModal(${item.id})" class="text-slate-400 hover:text-indigo-600"><i class="ph ph-pencil-simple"></i></button>
+                        <button onclick="deleteCashflow(${item.id})" class="text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
+                    </div>
+                `;
+                listEl.appendChild(div);
+            });
+
+            appData.expenses.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-2 rounded-lg bg-rose-50 text-xs border border-rose-100';
+                div.innerHTML = `
+                    <div>
+                        <span class="font-bold text-rose-800">[지출] ${item.title}</span>
+                        <span class="text-slate-400 text-[10px] ml-1">(매달 ${item.day}일)</span>
+                        ${item.memo ? `<p class="text-[10px] text-rose-600">${item.memo}</p>` : ''}
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-rose-700">-${Number(item.amount).toLocaleString()}원</span>
+                        <button onclick="openCashflowModal(${item.id})" class="text-slate-400 hover:text-indigo-600"><i class="ph ph-pencil-simple"></i></button>
+                        <button onclick="deleteCashflow(${item.id})" class="text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
+                    </div>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+
+        // --- 앱테크 CRUD ---
+        function openApptechModal(id = null) {
+            document.getElementById('apptech-edit-id').value = id || '';
+            document.getElementById('apptech-modal-title').innerText = id ? '앱테크 수정' : '앱테크 추가';
+
+            if(id) {
+                const item = appData.apptech.find(a => a.id === id);
+                if(item) {
+                    document.getElementById('apptech-app').value = item.appName;
+                    document.getElementById('apptech-title').value = item.title;
+                    document.getElementById('apptech-cycle').value = item.cycle;
+                    document.getElementById('apptech-time').value = item.time || '';
+                }
+            } else {
+                document.getElementById('apptech-app').value = '';
+                document.getElementById('apptech-title').value = '';
+                document.getElementById('apptech-cycle').value = 'daily';
+                document.getElementById('apptech-time').value = '';
+            }
+            openModal('apptech');
+        }
+
+        function saveApptech() {
+            const id = document.getElementById('apptech-edit-id').value;
+            const appName = document.getElementById('apptech-app').value.trim() || '기타';
+            const title = document.getElementById('apptech-title').value.trim();
+            const cycle = document.getElementById('apptech-cycle').value;
+            const time = document.getElementById('apptech-time').value;
+
+            if(!title) return alert('미션 내용을 입력하세요.');
+
+            const apptechObj = { id: id ? Number(id) : Date.now(), appName, title, cycle, time, done: false };
+
+            if(id) {
+                const idx = appData.apptech.findIndex(a => a.id === Number(id));
+                if(idx !== -1) appData.apptech[idx] = apptechObj;
+            } else {
+                appData.apptech.push(apptechObj);
+            }
+
+            saveData();
+            closeModal('apptech');
+        }
+
+        function deleteApptech(id) {
+            if(confirm('이 미션을 삭제하시겠습니까?')) {
+                appData.apptech = appData.apptech.filter(a => a.id !== id);
+                saveData();
+            }
+        }
+
+        function renderApptech() {
+            const listEl = document.getElementById('apptech-list');
+            listEl.innerHTML = '';
+
+            const filtered = appData.apptech.filter(a => a.cycle === selectedApptechTab);
+            if(filtered.length === 0) {
+                listEl.innerHTML = `<div class="text-xs text-slate-400 text-center py-6">등록된 미션이 없습니다.</div>`;
+                return;
+            }
+
+            const grouped = {};
+            filtered.forEach(item => {
+                const app = item.appName || '기타';
+                if(!grouped[app]) grouped[app] = [];
+                grouped[app].push(item);
+            });
+
+            Object.keys(grouped).forEach(appName => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'bg-white rounded-xl border border-slate-200 p-3.5 space-y-2 shadow-sm';
+                
+                let itemsHtml = grouped[appName].map(item => `
+                    <div class="flex items-center justify-between py-1 border-b border-slate-100 last:border-0">
+                        <div class="flex items-center space-x-2.5">
+                            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleApptech(${item.id})" class="w-4 h-4 accent-indigo-600 rounded">
+                            <span class="text-xs ${item.done ? 'line-through text-slate-400' : 'text-slate-800 font-medium'}">${item.title}</span>
+                            ${item.time ? `<span class="text-[10px] text-slate-400">(${item.time})</span>` : ''}
+                        </div>
+                        <div class="flex space-x-1">
+                            <button onclick="openApptechModal(${item.id})" class="text-slate-300 hover:text-indigo-600 text-xs"><i class="ph ph-pencil-simple"></i></button>
+                            <button onclick="deleteApptech(${item.id})" class="text-slate-300 hover:text-rose-500 text-xs"><i class="ph ph-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+
+                groupDiv.innerHTML = `
+                    <div class="text-xs font-bold text-indigo-600 flex items-center justify-between">
+                        <span><i class="ph ph-cellphone mr-1"></i>${appName}</span>
+                    </div>
+                    <div>${itemsHtml}</div>
+                `;
+                listEl.appendChild(groupDiv);
+            });
+        }
+
+        function toggleApptech(id) {
+            const item = appData.apptech.find(a => a.id === id);
+            if(item) item.done = !item.done;
+            saveData();
+        }
+
+        function setApptechView(cycle) {
+            selectedApptechTab = cycle;
+            ['daily', 'weekly', 'monthly'].forEach(c => {
+                const btn = document.getElementById(`btn-apptech-${c}`);
+                btn.className = (c === cycle) ? 'px-3 py-1 rounded-full bg-indigo-600 text-white font-medium' : 'px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium';
+            });
+            renderApptech();
+        }
+
+        // --- 카드 CRUD ---
         function openCardModal(id = null) {
             document.getElementById('card-edit-id').value = id || '';
             document.getElementById('card-modal-title').innerText = id ? '카드 수정' : '카드 등록';
@@ -434,7 +729,7 @@
         }
 
         function deleteCard(id) {
-            if(confirm('이 카드 실적 정보를 삭제하시겠습니까?')) {
+            if(confirm('이 카드를 삭제하시겠습니까?')) {
                 appData.cards = appData.cards.filter(c => c.id !== id);
                 saveData();
             }
@@ -443,11 +738,6 @@
         function renderCards() {
             const listEl = document.getElementById('card-list');
             listEl.innerHTML = '';
-
-            if(appData.cards.length === 0) {
-                listEl.innerHTML = `<div class="text-xs text-slate-400 text-center py-6">등록된 카드가 없습니다. 추가해 보세요!</div>`;
-                return;
-            }
 
             appData.cards.forEach(card => {
                 const percent = Math.min(100, Math.round((card.current / (card.target || 1)) * 100));
@@ -491,69 +781,6 @@
             });
         }
 
-        // --- 앱테크 렌더링 ---
-        function renderApptech() {
-            const listEl = document.getElementById('apptech-list');
-            listEl.innerHTML = '';
-
-            const filtered = appData.apptech.filter(a => a.cycle === selectedApptechTab);
-            if(filtered.length === 0) {
-                listEl.innerHTML = `<div class="text-xs text-slate-400 text-center py-6">등록된 앱테크 미션이 없습니다.</div>`;
-                return;
-            }
-
-            const grouped = {};
-            filtered.forEach(item => {
-                const app = item.appName || '기타';
-                if(!grouped[app]) grouped[app] = [];
-                grouped[app].push(item);
-            });
-
-            Object.keys(grouped).forEach(appName => {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'bg-white rounded-xl border border-slate-200 p-3.5 space-y-2 shadow-sm';
-                
-                let itemsHtml = grouped[appName].map(item => `
-                    <div class="flex items-center justify-between py-1 border-b border-slate-100 last:border-0">
-                        <div class="flex items-center space-x-2.5">
-                            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleApptech(${item.id})" class="w-4 h-4 accent-indigo-600 rounded">
-                            <span class="text-xs ${item.done ? 'line-through text-slate-400' : 'text-slate-800 font-medium'}">${item.title}</span>
-                            ${item.time ? `<span class="text-[10px] text-slate-400">(${item.time})</span>` : ''}
-                        </div>
-                        <button onclick="deleteApptech(${item.id})" class="text-slate-300 hover:text-rose-500 text-xs"><i class="ph ph-trash"></i></button>
-                    </div>
-                `).join('');
-
-                groupDiv.innerHTML = `
-                    <div class="text-xs font-bold text-indigo-600 flex items-center justify-between">
-                        <span><i class="ph ph-cellphone mr-1"></i>${appName}</span>
-                    </div>
-                    <div>${itemsHtml}</div>
-                `;
-                listEl.appendChild(groupDiv);
-            });
-        }
-
-        function toggleApptech(id) {
-            const item = appData.apptech.find(a => a.id === id);
-            if(item) item.done = !item.done;
-            saveData();
-        }
-
-        function deleteApptech(id) {
-            appData.apptech = appData.apptech.filter(a => a.id !== id);
-            saveData();
-        }
-
-        function setApptechView(cycle) {
-            selectedApptechTab = cycle;
-            ['daily', 'weekly', 'monthly'].forEach(c => {
-                const btn = document.getElementById(`btn-apptech-${c}`);
-                btn.className = (c === cycle) ? 'px-3 py-1 rounded-full bg-indigo-600 text-white font-medium' : 'px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium';
-            });
-            renderApptech();
-        }
-
         // --- 적금 CRUD ---
         function openSavingsModal(id = null) {
             document.getElementById('savings-edit-id').value = id || '';
@@ -571,6 +798,7 @@
                     document.getElementById('savings-rate-bonus').value = item.rateBonus;
                     document.getElementById('savings-start').value = item.startDate;
                     document.getElementById('savings-end').value = item.endDate;
+                    document.getElementById('savings-memo').value = item.memo || '';
                 }
             } else {
                 document.getElementById('savings-name').value = '';
@@ -581,6 +809,7 @@
                 document.getElementById('savings-rate-bonus').value = '';
                 document.getElementById('savings-start').value = '';
                 document.getElementById('savings-end').value = '';
+                document.getElementById('savings-memo').value = '';
             }
             toggleSavingsCycle();
             openModal('savings');
@@ -608,10 +837,11 @@
             const rateBonus = Number(document.getElementById('savings-rate-bonus').value) || 0;
             const startDate = document.getElementById('savings-start').value;
             const endDate = document.getElementById('savings-end').value;
+            const memo = document.getElementById('savings-memo').value.trim();
 
             if(!name) return alert('적금 이름을 입력하세요.');
 
-            const savingsObj = { id: id ? Number(id) : Date.now(), name, amount, cycle, day, weekday, rateBase, rateBonus, startDate, endDate };
+            const savingsObj = { id: id ? Number(id) : Date.now(), name, amount, cycle, day, weekday, rateBase, rateBonus, startDate, endDate, memo };
 
             if(id) {
                 const idx = appData.savings.findIndex(s => s.id === Number(id));
@@ -625,7 +855,7 @@
         }
 
         function deleteSavings(id) {
-            if(confirm('이 적금 정보를 삭제하시겠습니까?')) {
+            if(confirm('이 적금을 삭제하시겠습니까?')) {
                 appData.savings = appData.savings.filter(s => s.id !== id);
                 saveData();
             }
@@ -634,11 +864,6 @@
         function renderSavings() {
             const listEl = document.getElementById('savings-list');
             listEl.innerHTML = '';
-
-            if(appData.savings.length === 0) {
-                listEl.innerHTML = `<div class="text-xs text-slate-400 text-center py-6">등록된 적금이 없습니다. 우측 상단버튼으로 추가해 보세요.</div>`;
-                return;
-            }
 
             const weekdaysText = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -652,17 +877,18 @@
                     <div class="flex justify-between items-start">
                         <div>
                             <h3 class="font-bold text-sm text-slate-900">${item.name}</h3>
-                            <p class="text-[10px] text-slate-400">${item.startDate || '-'} ~ ${item.endDate || '-'}</p>
+                            <p class="text-[10px] text-slate-400">${item.startDate || '가입일 미지정'} ~ ${item.endDate || '만기일 미지정'}</p>
                         </div>
                         <div class="flex space-x-2">
                             <button onclick="openSavingsModal(${item.id})" class="text-slate-400 hover:text-indigo-600 text-sm"><i class="ph ph-pencil-simple"></i></button>
                             <button onclick="deleteSavings(${item.id})" class="text-slate-400 hover:text-rose-500 text-sm"><i class="ph ph-trash"></i></button>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center text-xs pt-2 border-t border-slate-100">
+                    <div class="flex justify-between items-center text-xs pt-1">
                         <span class="text-slate-500">납입액: <b class="text-slate-800">${item.amount.toLocaleString()}원</b> (${cycleText})</span>
                         <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-bold">최대 연 ${totalRate}%</span>
                     </div>
+                    ${item.memo ? `<div class="bg-slate-50 p-2 rounded text-[11px] text-slate-600 border border-slate-100">${item.memo}</div>` : ''}
                 `;
                 listEl.appendChild(card);
             });
@@ -679,11 +905,13 @@
                     document.getElementById('account-name').value = acc.name;
                     document.getElementById('account-balance').value = acc.balance;
                     document.getElementById('account-type').value = acc.type;
+                    document.getElementById('account-memo').value = acc.memo || '';
                 }
             } else {
                 document.getElementById('account-name').value = '';
                 document.getElementById('account-balance').value = '';
                 document.getElementById('account-type').value = 'checking';
+                document.getElementById('account-memo').value = '';
             }
             openModal('account');
         }
@@ -693,10 +921,11 @@
             const name = document.getElementById('account-name').value.trim();
             const balance = Number(document.getElementById('account-balance').value) || 0;
             const type = document.getElementById('account-type').value;
+            const memo = document.getElementById('account-memo').value.trim();
 
             if(!name) return alert('계좌명을 입력하세요.');
 
-            const accObj = { id: id ? Number(id) : Date.now(), name, balance, type };
+            const accObj = { id: id ? Number(id) : Date.now(), name, balance, type, memo };
 
             if(id) {
                 const idx = appData.accounts.findIndex(a => a.id === Number(id));
@@ -720,24 +949,22 @@
             const listEl = document.getElementById('account-list');
             listEl.innerHTML = '';
 
-            if(appData.accounts.length === 0) {
-                listEl.innerHTML = `<div class="text-xs text-slate-400 text-center py-6">등록된 계좌가 없습니다.</div>`;
-                return;
-            }
-
             appData.accounts.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center';
+                card.className = 'bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5';
                 card.innerHTML = `
-                    <div>
-                        <div class="text-xs text-slate-400 uppercase font-semibold">${item.type}</div>
-                        <div class="font-bold text-sm text-slate-900">${item.name}</div>
-                        <div class="text-indigo-600 font-bold text-sm mt-0.5">${Number(item.balance).toLocaleString()}원</div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-500">${item.type}</span>
+                            <h3 class="font-bold text-sm text-slate-900 mt-1">${item.name}</h3>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="openAccountModal(${item.id})" class="text-slate-400 hover:text-indigo-600 text-sm"><i class="ph ph-pencil-simple"></i></button>
+                            <button onclick="deleteAccount(${item.id})" class="text-slate-400 hover:text-rose-500 text-sm"><i class="ph ph-trash"></i></button>
+                        </div>
                     </div>
-                    <div class="flex space-x-2">
-                        <button onclick="openAccountModal(${item.id})" class="text-slate-400 hover:text-indigo-600 text-sm"><i class="ph ph-pencil-simple"></i></button>
-                        <button onclick="deleteAccount(${item.id})" class="text-slate-400 hover:text-rose-500 text-sm"><i class="ph ph-trash"></i></button>
-                    </div>
+                    <div class="text-indigo-600 font-extrabold text-base">${Number(item.balance).toLocaleString()}원</div>
+                    ${item.memo ? `<p class="text-[11px] text-slate-500 bg-slate-50 p-2 rounded border border-slate-100">${item.memo}</p>` : ''}
                 `;
                 listEl.appendChild(card);
             });
@@ -748,10 +975,13 @@
             const totalAssets = appData.accounts.reduce((acc, cur) => acc + Number(cur.balance), 0);
             const totalIncomes = appData.incomes.reduce((acc, cur) => acc + Number(cur.amount), 0);
             const totalExpenses = appData.expenses.reduce((acc, cur) => acc + Number(cur.amount), 0);
+            const totalSavings = appData.savings.reduce((acc, cur) => acc + (cur.cycle === 'monthly' ? Number(cur.amount) : 0), 0);
             
-            document.getElementById('dash-available').innerText = (totalIncomes - totalExpenses).toLocaleString() + '원';
+            const netCashflow = totalIncomes - totalExpenses - totalSavings;
+
+            document.getElementById('dash-available').innerText = netCashflow.toLocaleString() + '원';
             document.getElementById('dash-income').innerText = '+' + totalIncomes.toLocaleString() + '원';
-            document.getElementById('dash-expense').innerText = '-' + totalExpenses.toLocaleString() + '원';
+            document.getElementById('dash-expense').innerText = '-' + (totalExpenses + totalSavings).toLocaleString() + '원';
             document.getElementById('dash-total-assets').innerText = totalAssets.toLocaleString() + '원';
 
             const achievedCards = appData.cards.filter(c => c.current >= c.target).length;
@@ -812,45 +1042,9 @@
             savs.forEach(s => eventsEl.innerHTML += `<div class="flex justify-between text-indigo-600 font-semibold"><span>[적금] ${s.name}</span><span>-${Number(s.amount).toLocaleString()}원</span></div>`);
         }
 
-        function toggleQuickFields() {
-            const type = document.getElementById('quick-type').value;
-            if(type === 'apptech') {
-                document.getElementById('field-amount').classList.add('hidden');
-                document.getElementById('field-day').classList.add('hidden');
-                document.getElementById('field-apptech').classList.remove('hidden');
-            } else {
-                document.getElementById('field-amount').classList.remove('hidden');
-                document.getElementById('field-day').classList.remove('hidden');
-                document.getElementById('field-apptech').classList.add('hidden');
-            }
-        }
-
-        function saveQuickAdd() {
-            const type = document.getElementById('quick-type').value;
-            const title = document.getElementById('quick-title').value.trim();
-
-            if(!title) return alert('항목명을 입력하세요.');
-
-            if(type === 'apptech') {
-                const appName = document.getElementById('quick-apptech-appName').value.trim() || '기타';
-                const cycle = document.getElementById('quick-apptech-cycle').value;
-                const time = document.getElementById('quick-apptech-time').value;
-                appData.apptech.push({ id: Date.now(), appName, title, cycle, time, done: false });
-            } else {
-                const amount = Number(document.getElementById('quick-amount').value) || 0;
-                const day = Number(document.getElementById('quick-day').value) || 1;
-                if(type === 'income') appData.incomes.push({ id: Date.now(), title, amount, day });
-                if(type === 'expense') appData.expenses.push({ id: Date.now(), title, amount, day });
-            }
-
-            saveData();
-            closeModal('quickAdd');
-            document.getElementById('quick-title').value = '';
-            document.getElementById('quick-amount').value = '';
-        }
-
         function renderAll() {
             renderDashboard();
+            renderCashflowList();
             renderApptech();
             renderCalendar();
             renderCards();
