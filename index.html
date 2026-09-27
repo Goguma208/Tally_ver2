@@ -2,1057 +2,1029 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>스마트 자산 & 앱테크 통합 관리</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>스마트 금융 & 앱테크 매니저</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        .pt-safe { padding-top: env(safe-area-inset-top); }
+        body { -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 pb-24 pt-safe select-none">
+<body class="bg-slate-100 text-slate-800 font-sans pb-24">
 
     <!-- 상단 헤더 -->
-    <header class="sticky top-0 z-20 bg-slate-50/80 backdrop-blur-md border-b border-slate-200 px-5 py-4 flex justify-between items-center">
+    <header class="sticky top-0 bg-white border-b border-slate-200 z-30 px-4 py-3 flex justify-between items-center shadow-sm">
         <div>
-            <h1 class="text-xl font-bold text-slate-900">자산 &amp; 앱테크 통합 관리</h1>
-            <p class="text-xs text-slate-500">목돈 운용 &amp; 매일 루틴 챙기기</p>
+            <h1 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+                <i class="fa-solid font-bold fa-wallet text-indigo-600"></i> 스마트 금융 매니저
+            </h1>
+            <p class="text-xs text-slate-500" id="current-month-text"></p>
         </div>
+        <button onclick="openQuickAddModal()" class="bg-indigo-600 text-white w-9 h-9 rounded-full flex items-center justify-center font-bold text-lg shadow-md active:scale-95 transition-transform">
+            <i class="fa-solid fa-plus"></i>
+        </button>
     </header>
 
     <!-- 메인 컨텐츠 영역 -->
-    <main class="px-5 py-4 max-w-md mx-auto space-y-6">
+    <main class="max-w-md mx-auto p-4 space-y-4">
 
-        <!-- [TAB 1] 대시보드 -->
-        <section id="tab-dashboard" class="tab-content space-y-5">
-            <div onclick="switchTab('calendar')" class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-2xl p-5 text-white shadow-xl cursor-pointer transform active:scale-98 transition">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs opacity-80 font-medium">이번 달 순현금흐름 (가용 현금)</span>
-                    <i class="ph ph-caret-right text-sm"></i>
+        <!-- 🚨 [NEW] 오늘 수행해야 할 우대금리 긴급 미션 알림 바 -->
+        <div id="today-alert-container"></div>
+
+        <!-- TAB 1: 대시보드 -->
+        <section id="tab-dashboard" class="tab-content space-y-4">
+            <!-- 가용 현금 카드 -->
+            <div onclick="switchTab('tab-calendar')" class="cursor-pointer bg-gradient-to-br from-indigo-600 to-indigo-800 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-semibold bg-white/20 px-2 py-0.5 rounded-full">이번 달 실질 가용 현금</span>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
                 </div>
-                <div class="text-3xl font-extrabold tracking-tight" id="dash-available">0원</div>
-                <div class="mt-4 pt-3 border-t border-indigo-400/30 flex justify-between text-xs">
-                    <div>예정 수입: <span id="dash-income" class="font-semibold text-emerald-300">+0원</span></div>
-                    <div>고정 지출/저축: <span id="dash-expense" class="font-semibold text-rose-300">-0원</span></div>
-                </div>
+                <div class="text-2xl font-black mb-1" id="dash-available-cash">0 원</div>
+                <p class="text-xs text-indigo-100" id="dash-cash-desc">예정 수입에서 고정 지출/저축을 제외한 금액</p>
             </div>
 
+            <!-- 보유 자산 요약 -->
             <div class="grid grid-cols-2 gap-3">
-                <div onclick="switchTab('assets')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer active:bg-slate-50">
-                    <div class="flex items-center text-slate-500 mb-1">
-                        <i class="ph ph-bank text-indigo-600 mr-1.5 text-lg"></i>
-                        <span class="text-xs font-semibold">총 보유 자산</span>
+                <div onclick="switchTab('tab-assets')" class="cursor-pointer bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300">
+                    <div class="flex items-center gap-2 text-slate-500 text-xs mb-1">
+                        <i class="fa-solid fa-building-columns text-indigo-500"></i>
+                        <span>총 보유 자산</span>
                     </div>
-                    <div class="text-lg font-bold text-slate-900" id="dash-total-assets">0원</div>
+                    <div class="font-bold text-base text-slate-900" id="dash-total-assets">0 원</div>
                 </div>
-                <div onclick="switchTab('cards')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer active:bg-slate-50">
-                    <div class="flex items-center text-slate-500 mb-1">
-                        <i class="ph ph-credit-card text-amber-500 mr-1.5 text-lg"></i>
-                        <span class="text-xs font-semibold">카드 실적 현황</span>
+                <div onclick="switchTab('tab-savings')" class="cursor-pointer bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-indigo-300">
+                    <div class="flex items-center gap-2 text-slate-500 text-xs mb-1">
+                        <i class="fa-solid fa-piggy-bank text-purple-500"></i>
+                        <span>이번 달 저축 목표</span>
                     </div>
-                    <div class="text-lg font-bold text-slate-900" id="dash-card-status">0 / 0 개</div>
+                    <div class="font-bold text-base text-slate-900" id="dash-total-savings">0 원</div>
                 </div>
             </div>
 
-            <!-- 고정 수입/지출 관리 섹션 -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <!-- 우대금리 미션 달성 현황 요약 -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
                 <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-sm text-slate-900"><i class="ph ph-arrows-down-up text-indigo-600 mr-1"></i> 고정 수입 / 지출 항목</h3>
-                    <button onclick="openCashflowModal()" class="text-xs text-indigo-600 font-bold flex items-center">
-                        <i class="ph ph-plus-circle text-base mr-1"></i> 추가
-                    </button>
+                    <h2 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bullseye text-amber-500"></i> 우대금리 미션 방어
+                    </h2>
+                    <button onclick="openConditionModal()" class="text-xs text-indigo-600 font-semibold">+ 미션 추가</button>
                 </div>
-                <div class="space-y-2" id="cashflow-list"></div>
-            </div>
-        </section>
-
-        <!-- [TAB 2] 앱테크 루틴 -->
-        <section id="tab-apptech" class="tab-content hidden space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="text-lg font-bold text-slate-900">앱테크 체크리스트</h2>
-                <button onclick="openApptechModal()" class="text-xs text-indigo-600 font-bold flex items-center">
-                    <i class="ph ph-plus-circle text-base mr-1"></i> 미션 추가
-                </button>
-            </div>
-            <div class="flex space-x-1 text-xs mb-2">
-                <button onclick="setApptechView('daily')" id="btn-apptech-daily" class="px-3 py-1 rounded-full bg-indigo-600 text-white font-medium">데일리</button>
-                <button onclick="setApptechView('weekly')" id="btn-apptech-weekly" class="px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium">주별</button>
-                <button onclick="setApptechView('monthly')" id="btn-apptech-monthly" class="px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium">월별</button>
-            </div>
-            <div class="space-y-4" id="apptech-list"></div>
-        </section>
-
-        <!-- [TAB 3] 금융 달력 -->
-        <section id="tab-calendar" class="tab-content hidden space-y-4">
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-                <div class="flex justify-between items-center mb-4">
-                    <button onclick="changeMonth(-1)" class="p-1 rounded-lg hover:bg-slate-100"><i class="ph ph-caret-left text-lg"></i></button>
-                    <h2 class="text-base font-bold text-slate-900" id="calendar-month-year">2026년 9월</h2>
-                    <button onclick="changeMonth(1)" class="p-1 rounded-lg hover:bg-slate-100"><i class="ph ph-caret-right text-lg"></i></button>
-                </div>
-                <div class="grid grid-cols-7 text-center text-xs font-semibold text-slate-400 mb-2">
-                    <span class="text-rose-500">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="text-indigo-500">토</span>
-                </div>
-                <div class="grid grid-cols-7 gap-1 text-xs text-center" id="calendar-grid"></div>
-            </div>
-            <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-2">
-                <h3 class="text-xs font-bold text-slate-500" id="selected-date-title">이벤트 내역</h3>
-                <div class="space-y-1.5 text-xs" id="selected-date-events">
-                    <p class="text-slate-400">날짜를 선택하세요.</p>
+                <div id="dash-mission-list" class="space-y-2">
+                    <!-- 미션 목록이 JS로 생성됨 -->
                 </div>
             </div>
         </section>
 
-        <!-- [TAB 4] 카드 & 실적 혜택 -->
+        <!-- TAB 2: 카드 & 실적/혜택 (전면 개편) -->
         <section id="tab-cards" class="tab-content hidden space-y-4">
             <div class="flex justify-between items-center">
-                <h2 class="text-lg font-bold text-slate-900">카드 실적 &amp; 혜택</h2>
-                <button onclick="openCardModal()" class="text-xs text-indigo-600 font-bold flex items-center">
-                    <i class="ph ph-plus-circle text-base mr-1"></i> 카드 추가
-                </button>
+                <h2 class="font-bold text-base text-slate-900">카드 실적 및 혜택 회수</h2>
+                <button onclick="openCardModal()" class="bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg font-medium">+ 카드 등록</button>
             </div>
-            <div class="space-y-3" id="card-list"></div>
+
+            <!-- 스마트 고정 결제 규칙 안내 -->
+            <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs text-amber-800 space-y-1">
+                <div class="font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-lightbulb"></i> 스마트 결제 가이드
+                </div>
+                <p>• <b>대중교통:</b> 무조건 <b>K-패스 카드</b> 단일 사용 (환급율 최적화)</p>
+                <p>• <b>실적 제외 대상:</b> 상품권, 관리비, 대중교통 등 제외 항목 체크 필수</p>
+            </div>
+
+            <div id="card-list" class="space-y-3">
+                <!-- 카드 혜택 카운터 카드가 로드됨 -->
+            </div>
         </section>
 
-        <!-- [TAB 5] 적금 트래커 -->
+        <!-- TAB 3: 앱테크 루틴 -->
+        <section id="tab-apptech" class="tab-content hidden space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="font-bold text-base text-slate-900">앱테크 루틴</h2>
+                <div class="flex bg-slate-200 p-0.5 rounded-lg text-xs font-semibold">
+                    <button onclick="setApptechView('daily')" id="btn-app-daily" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm">데일리</button>
+                    <button onclick="setApptechView('weekly')" id="btn-app-weekly" class="px-2.5 py-1 rounded-md text-slate-600">주간</button>
+                    <button onclick="setApptechView('monthly')" id="btn-app-monthly" class="px-2.5 py-1 rounded-md text-slate-600">월간</button>
+                </div>
+            </div>
+            <div id="apptech-group-list" class="space-y-4">
+                <!-- 앱별 카테고리 그룹화되어 생성됨 -->
+            </div>
+        </section>
+
+        <!-- TAB 4: 금융 달력 -->
+        <section id="tab-calendar" class="tab-content hidden space-y-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <button onclick="changeMonth(-1)" class="p-1 text-slate-600 hover:text-slate-900"><i class="fa-solid fa-chevron-left"></i></button>
+                    <h2 class="font-bold text-base text-slate-800" id="calendar-month-year">2026년 9월</h2>
+                    <button onclick="changeMonth(1)" class="p-1 text-slate-600 hover:text-slate-900"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400 mb-2">
+                    <div class="text-rose-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-500">토</div>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center text-xs" id="calendar-days">
+                    <!-- 달력 일자 자동 생성 -->
+                </div>
+            </div>
+
+            <!-- Selected Date Summary -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                <h3 class="font-bold text-sm text-slate-800 border-b border-slate-100 pb-2" id="selected-date-text">선택된 날짜 내역</h3>
+                <div id="selected-date-items" class="space-y-2 text-xs text-slate-600">
+                    <p class="text-slate-400 text-center py-2">일정을 확인하려면 달력의 날짜를 선택하세요.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: 적금 트래커 -->
         <section id="tab-savings" class="tab-content hidden space-y-4">
             <div class="flex justify-between items-center">
-                <h2 class="text-lg font-bold text-slate-900">적금 트래커</h2>
-                <button onclick="openSavingsModal()" class="text-xs text-indigo-600 font-bold flex items-center">
-                    <i class="ph ph-plus-circle text-base mr-1"></i> 적금 추가
-                </button>
+                <h2 class="font-bold text-base text-slate-900">적금 & 목돈 트래커</h2>
+                <button onclick="openSavingsModal()" class="bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg font-medium">+ 적금 등록</button>
             </div>
-            <div class="space-y-3" id="savings-list"></div>
+            <div id="savings-list" class="space-y-3">
+                <!-- 적금 카드가 로드됨 -->
+            </div>
         </section>
 
-        <!-- [TAB 6] 통장 & 계좌 자산 -->
+        <!-- TAB 6: 통장 & 계좌 자산 -->
         <section id="tab-assets" class="tab-content hidden space-y-4">
             <div class="flex justify-between items-center">
-                <h2 class="text-lg font-bold text-slate-900">통장 및 계좌 목록</h2>
-                <button onclick="openAccountModal()" class="text-xs text-indigo-600 font-bold flex items-center">
-                    <i class="ph ph-plus-circle text-base mr-1"></i> 계좌 추가
-                </button>
+                <h2 class="font-bold text-base text-slate-900">계좌 & CMA 자산</h2>
+                <button onclick="openAccountModal()" class="bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg font-medium">+ 계좌 추가</button>
             </div>
-            <div class="space-y-3" id="account-list"></div>
+            <div id="account-list" class="space-y-3">
+                <!-- 계좌 목록이 로드됨 -->
+            </div>
         </section>
+
     </main>
 
-    <!-- 하단 탭 바 -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 px-2 py-2 pb-safe z-30">
-        <div class="max-w-md mx-auto flex justify-between items-center text-center">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn text-indigo-600 flex-1 py-1">
-                <i class="ph ph-house-line text-lg block mx-auto"></i>
-                <span class="text-[9px] font-medium block mt-0.5">대시보드</span>
+    <!-- 하단 네비게이션 바 -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-30 px-2 py-2">
+        <div class="max-w-md mx-auto grid grid-cols-6 gap-1 text-center text-[10px]">
+            <button onclick="switchTab('tab-dashboard')" class="nav-btn text-indigo-600 flex flex-col items-center py-1">
+                <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>대시보드
             </button>
-            <button onclick="switchTab('apptech')" id="nav-apptech" class="nav-btn text-slate-400 flex-1 py-1">
-                <i class="ph ph-check-square-offset text-lg block mx-auto"></i>
-                <span class="text-[9px] font-medium block mt-0.5">앱테크</span>
+            <button onclick="switchTab('tab-cards')" class="nav-btn text-slate-400 flex flex-col items-center py-1">
+                <i class="fa-solid fa-credit-card text-base mb-0.5"></i>카드/혜택
             </button>
-            <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn text-slate-400 flex-1 py-1">
-                <i class="ph ph-calendar-blank text-lg block mx-auto"></i>
-                <span class="text-[9px] font-medium block mt-0.5">달력</span>
+            <button onclick="switchTab('tab-apptech')" class="nav-btn text-slate-400 flex flex-col items-center py-1">
+                <i class="fa-solid fa-mobile-screen-button text-base mb-0.5"></i>앱테크
             </button>
-            <button onclick="switchTab('cards')" id="nav-cards" class="nav-btn text-slate-400 flex-1 py-1">
-                <i class="ph ph-credit-card text-lg block mx-auto"></i>
-                <span class="text-[9px] font-medium block mt-0.5">카드실적</span>
+            <button onclick="switchTab('tab-calendar')" class="nav-btn text-slate-400 flex flex-col items-center py-1">
+                <i class="fa-solid fa-calendar-days text-base mb-0.5"></i>달력
             </button>
-            <button onclick="switchTab('savings')" id="nav-savings" class="nav-btn text-slate-400 flex-1 py-1">
-                <i class="ph ph-piggy-bank text-lg block mx-auto"></i>
-                <span class="text-[9px] font-medium block mt-0.5">적금</span>
+            <button onclick="switchTab('tab-savings')" class="nav-btn text-slate-400 flex flex-col items-center py-1">
+                <i class="fa-solid fa-piggy-bank text-base mb-0.5"></i>적금
             </button>
-            <button onclick="switchTab('assets')" id="nav-assets" class="nav-btn text-slate-400 flex-1 py-1">
-                <i class="ph ph-wallet text-lg block mx-auto"></i>
-                <span class="text-[9px] font-medium block mt-0.5">자산</span>
+            <button onclick="switchTab('tab-assets')" class="nav-btn text-slate-400 flex flex-col items-center py-1">
+                <i class="fa-solid fa-building-columns text-base mb-0.5"></i>자산
             </button>
         </div>
     </nav>
 
-    <!-- 모달: 고정 수입/지출 -->
-    <div id="modal-cashflow" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end justify-center">
-        <div class="bg-white rounded-t-2xl p-6 w-full max-w-md space-y-4 max-h-[85vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="font-bold text-slate-900" id="cashflow-modal-title">수입 / 지출 항목 관리</h3>
-                <button onclick="closeModal('cashflow')" class="text-slate-400 text-lg"><i class="ph ph-x"></i></button>
-            </div>
-            <input type="hidden" id="cashflow-edit-id">
-            <div class="space-y-3 text-xs">
+    <!-- MODAL 1: 우대금리 미션 등록 모달 -->
+    <div id="modal-condition" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4">
+            <h3 class="font-bold text-base text-slate-900" id="modal-condition-title">우대금리 미션 추가</h3>
+            <form id="form-condition" onsubmit="saveCondition(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="cond-id">
                 <div>
-                    <label class="block font-semibold mb-1">유형</label>
-                    <select id="cashflow-type" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                        <option value="income">수입</option>
-                        <option value="expense">지출</option>
+                    <label class="block font-semibold mb-1">미션 명칭</label>
+                    <input type="text" id="cond-title" required placeholder="예: 모니모 CMA 100만 원 예치" class="w-full border rounded-lg p-2.5">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">관련 금융기관 / 적금</label>
+                    <input type="text" id="cond-target" required placeholder="예: 삼성증권 / 신한적금9단" class="w-full border rounded-lg p-2.5">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">이행 주기 / 날짜</label>
+                    <select id="cond-cycle" class="w-full border rounded-lg p-2.5">
+                        <option value="lastDay">매달 말일 당일</option>
+                        <option value="15">매달 15일</option>
+                        <option value="1">매달 1일</option>
+                        <option value="weekly">매주 수행</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block font-semibold mb-1">항목명</label>
-                    <input type="text" id="cashflow-title" placeholder="예: 월급, 쿠팡 구독료" class="w-full p-2.5 border rounded-lg">
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-condition')" class="w-1/2 border py-2.5 rounded-lg font-bold text-slate-500">취소</button>
+                    <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-lg font-bold">저장</button>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-semibold mb-1">금액 (원)</label>
-                        <input type="number" id="cashflow-amount" placeholder="0" class="w-full p-2.5 border rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block font-semibold mb-1">발생일 (매월 며칠)</label>
-                        <input type="number" id="cashflow-day" placeholder="17" min="1" max="31" class="w-full p-2.5 border rounded-lg">
-                    </div>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">비고 / 조건 메모</label>
-                    <input type="text" id="cashflow-memo" placeholder="예: 국민은행 계좌 입금" class="w-full p-2.5 border rounded-lg">
-                </div>
-                <button onclick="saveCashflow()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
-            </div>
+            </form>
         </div>
     </div>
 
-    <!-- 모달: 앱테크 미션 -->
-    <div id="modal-apptech" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end justify-center">
-        <div class="bg-white rounded-t-2xl p-6 w-full max-w-md space-y-4 max-h-[85vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="font-bold text-slate-900" id="apptech-modal-title">앱테크 미션 등록</h3>
-                <button onclick="closeModal('apptech')" class="text-slate-400 text-lg"><i class="ph ph-x"></i></button>
-            </div>
-            <input type="hidden" id="apptech-edit-id">
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-semibold mb-1">앱 / 플랫폼명</label>
-                    <input type="text" id="apptech-app" placeholder="예: 토스, 모니모, 캐시워크" class="w-full p-2.5 border rounded-lg">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">미션 내용</label>
-                    <input type="text" id="apptech-title" placeholder="예: 만보기 1만보, 출석체크" class="w-full p-2.5 border rounded-lg">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-semibold mb-1">주기</label>
-                        <select id="apptech-cycle" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                            <option value="daily">매일</option>
-                            <option value="weekly">매주</option>
-                            <option value="monthly">매월</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-semibold mb-1">알림 시간 (선택)</label>
-                        <input type="time" id="apptech-time" class="w-full p-2.5 border rounded-lg">
-                    </div>
-                </div>
-                <button onclick="saveApptech()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 모달: 카드 추가/수정 -->
-    <div id="modal-card" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end justify-center">
-        <div class="bg-white rounded-t-2xl p-6 w-full max-w-md space-y-4 max-h-[85vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="font-bold text-slate-900" id="card-modal-title">카드 실적/혜택 등록</h3>
-                <button onclick="closeModal('card')" class="text-slate-400 text-lg"><i class="ph ph-x"></i></button>
-            </div>
-            <input type="hidden" id="card-edit-id">
-            <div class="space-y-3 text-xs">
+    <!-- MODAL 2: 카드 등록 및 수정 모달 -->
+    <div id="modal-card" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="font-bold text-base text-slate-900" id="modal-card-title">카드 및 혜택 추가</h3>
+            <form id="form-card" onsubmit="saveCard(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="card-id">
                 <div>
                     <label class="block font-semibold mb-1">카드명</label>
-                    <input type="text" id="card-name" placeholder="예: 우리은행 주사용 카드" class="w-full p-2.5 border rounded-lg">
+                    <input type="text" id="card-name" required placeholder="예: K-패스 신한 체크카드" class="w-full border rounded-lg p-2.5">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-semibold mb-1">목표 실적 (원)</label>
-                        <input type="number" id="card-target" placeholder="200000" class="w-full p-2.5 border rounded-lg">
+                        <input type="number" id="card-target" required placeholder="300000" class="w-full border rounded-lg p-2.5">
                     </div>
                     <div>
                         <label class="block font-semibold mb-1">현재 사용액 (원)</label>
-                        <input type="number" id="card-current" placeholder="0" class="w-full p-2.5 border rounded-lg">
+                        <input type="number" id="card-current" required placeholder="0" class="w-full border rounded-lg p-2.5">
                     </div>
                 </div>
                 <div>
-                    <label class="block font-semibold mb-1">실적 달성 혜택 메모</label>
-                    <textarea id="card-benefit" rows="3" placeholder="예: 매달 실적 20만원 달성 시 우대 혜택 적용" class="w-full p-2.5 border rounded-lg"></textarea>
+                    <label class="block font-semibold mb-1">주요 혜택 회수 항목 (예: 스타벅스 1만 원 이상)</label>
+                    <input type="text" id="card-benefit-title" placeholder="스타벅스 할인" class="w-full border rounded-lg p-2.5 mb-1">
+                    <div class="flex items-center gap-2">
+                        <label class="text-slate-500">월 제공 횟수:</label>
+                        <input type="number" id="card-benefit-count" value="4" class="w-20 border rounded-lg p-2 text-center">
+                    </div>
                 </div>
-                <button onclick="saveCard()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
-            </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-card')" class="w-1/2 border py-2.5 rounded-lg font-bold text-slate-500">취소</button>
+                    <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-lg font-bold">저장</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- 모달: 적금 추가/수정 -->
-    <div id="modal-savings" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end justify-center">
-        <div class="bg-white rounded-t-2xl p-6 w-full max-w-md space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="font-bold text-slate-900" id="savings-modal-title">적금 등록/수정</h3>
-                <button onclick="closeModal('savings')" class="text-slate-400 text-lg"><i class="ph ph-x"></i></button>
-            </div>
-            <input type="hidden" id="savings-edit-id">
-            <div class="space-y-3 text-xs">
+    <!-- MODAL 3: 빠른 추가 (수입/지출/앱테크) -->
+    <div id="modal-quickAdd" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4">
+            <h3 class="font-bold text-base text-slate-900">빠른 항목 추가</h3>
+            <form id="form-quickAdd" onsubmit="saveQuickAdd(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">구분</label>
+                    <select id="quick-type" onchange="toggleQuickFields()" class="w-full border rounded-lg p-2.5">
+                        <option value="income">예정 수입</option>
+                        <option value="expense">고정 지출</option>
+                        <option value="apptech">앱테크 미션</option>
+                    </select>
+                </div>
+                <div id="field-title">
+                    <label class="block font-semibold mb-1">항목명</label>
+                    <input type="text" id="quick-title" required placeholder="예: 월급 / OTT 구독" class="w-full border rounded-lg p-2.5">
+                </div>
+                <div id="field-amount">
+                    <label class="block font-semibold mb-1">금액 (원)</label>
+                    <input type="number" id="quick-amount" placeholder="0" class="w-full border rounded-lg p-2.5">
+                </div>
+                <div id="field-apptech" class="hidden space-y-2">
+                    <div>
+                        <label class="block font-semibold mb-1">앱/플랫폼 이름</label>
+                        <input type="text" id="quick-app-name" placeholder="예: 토스, 모니모, 캐시워크" class="w-full border rounded-lg p-2.5">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">주기</label>
+                        <select id="quick-app-cycle" class="w-full border rounded-lg p-2.5">
+                            <option value="daily">매일</option>
+                            <option value="weekly">주간</option>
+                            <option value="monthly">월간</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="field-date">
+                    <label class="block font-semibold mb-1">날짜 / 납입일 (매월 일자)</label>
+                    <input type="number" id="quick-day" min="1" max="31" value="1" class="w-full border rounded-lg p-2.5">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-quickAdd')" class="w-1/2 border py-2.5 rounded-lg font-bold text-slate-500">취소</button>
+                    <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-lg font-bold">등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: 적금 등록/수정 모달 -->
+    <div id="modal-savings" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto text-xs">
+            <h3 class="font-bold text-base text-slate-900" id="modal-savings-title">적금 등록</h3>
+            <form id="form-savings" onsubmit="saveSavings(event)" class="space-y-3">
+                <input type="hidden" id="sav-id">
                 <div>
                     <label class="block font-semibold mb-1">적금 상품명</label>
-                    <input type="text" id="savings-name" placeholder="예: 웰컴 적금, Npay우리 적금" class="w-full p-2.5 border rounded-lg">
+                    <input type="text" id="sav-name" required placeholder="예: 모니모 팝콘저축" class="w-full border rounded-lg p-2.5">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block font-semibold mb-1">납입 금액 (원)</label>
-                        <input type="number" id="savings-amount" placeholder="200000" class="w-full p-2.5 border rounded-lg">
-                    </div>
-                    <div>
                         <label class="block font-semibold mb-1">납입 주기</label>
-                        <select id="savings-cycle" onchange="toggleSavingsCycle()" class="w-full p-2.5 border rounded-lg bg-slate-50">
+                        <select id="sav-cycle" onchange="toggleSavingsCycleField()" class="w-full border rounded-lg p-2.5">
                             <option value="monthly">매월</option>
                             <option value="weekly">매주</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block font-semibold mb-1">납입 금액 (원)</label>
+                        <input type="number" id="sav-amount" required placeholder="100000" class="w-full border rounded-lg p-2.5">
+                    </div>
                 </div>
-                <div id="savings-day-monthly">
+                <div id="sav-pay-day-box">
                     <label class="block font-semibold mb-1">매월 납입일 (1~31일)</label>
-                    <input type="number" id="savings-day" placeholder="19" class="w-full p-2.5 border rounded-lg">
+                    <input type="number" id="sav-pay-day" min="1" max="31" value="10" class="w-full border rounded-lg p-2.5">
                 </div>
-                <div id="savings-day-weekly" class="hidden">
+                <div id="sav-pay-week-box" class="hidden">
                     <label class="block font-semibold mb-1">매주 납입 요일</label>
-                    <select id="savings-weekday" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                        <option value="1">월요일</option>
-                        <option value="2">화요일</option>
-                        <option value="3">수요일</option>
-                        <option value="4">목요일</option>
-                        <option value="5">금요일</option>
-                        <option value="6">토요일</option>
-                        <option value="0">일요일</option>
+                    <select id="sav-pay-week" class="w-full border rounded-lg p-2.5">
+                        <option value="월요일">월요일</option>
+                        <option value="화요일">화요일</option>
+                        <option value="수요일">수요일</option>
+                        <option value="목요일">목요일</option>
+                        <option value="금요일">금요일</option>
+                        <option value="토요일">토요일</option>
+                        <option value="일요일">일요일</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-semibold mb-1">기본 금리 (%)</label>
-                        <input type="number" step="0.1" id="savings-rate-base" placeholder="1.0" class="w-full p-2.5 border rounded-lg">
+                        <input type="number" step="0.1" id="sav-rate-base" required placeholder="3.0" class="w-full border rounded-lg p-2.5">
                     </div>
                     <div>
                         <label class="block font-semibold mb-1">우대 금리 (%)</label>
-                        <input type="number" step="0.1" id="savings-rate-bonus" placeholder="6.0" class="w-full p-2.5 border rounded-lg">
+                        <input type="number" step="0.1" id="sav-rate-prime" placeholder="2.0" class="w-full border rounded-lg p-2.5">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-semibold mb-1">가입일</label>
-                        <input type="date" id="savings-start" class="w-full p-2.5 border rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block font-semibold mb-1">만기일</label>
-                        <input type="date" id="savings-end" class="w-full p-2.5 border rounded-lg">
-                    </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-savings')" class="w-1/2 border py-2.5 rounded-lg font-bold text-slate-500">취소</button>
+                    <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-lg font-bold">저장</button>
                 </div>
-                <div>
-                    <label class="block font-semibold mb-1">우대 조건 및 특징 메모</label>
-                    <textarea id="savings-memo" rows="2" placeholder="예: 평잔 50만원 유지 및 자동이체 8회 달성 시 7%" class="w-full p-2.5 border rounded-lg"></textarea>
-                </div>
-                <button onclick="saveSavings()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
-            </div>
+            </form>
         </div>
     </div>
 
-    <!-- 모달: 계좌 추가/수정 -->
-    <div id="modal-account" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end justify-center">
-        <div class="bg-white rounded-t-2xl p-6 w-full max-w-md space-y-4 max-h-[85vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="font-bold text-slate-900" id="account-modal-title">계좌 등록/수정</h3>
-                <button onclick="closeModal('account')" class="text-slate-400 text-lg"><i class="ph ph-x"></i></button>
-            </div>
-            <input type="hidden" id="account-edit-id">
-            <div class="space-y-3 text-xs">
+    <!-- MODAL 5: 계좌 자산 등록/수정 모달 -->
+    <div id="modal-account" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs">
+            <h3 class="font-bold text-base text-slate-900" id="modal-account-title">계좌 추가</h3>
+            <form id="form-account" onsubmit="saveAccount(event)" class="space-y-3">
+                <input type="hidden" id="acc-id">
                 <div>
-                    <label class="block font-semibold mb-1">통장 / 계좌명</label>
-                    <input type="text" id="account-name" placeholder="예: 웰컴저축은행 통장" class="w-full p-2.5 border rounded-lg">
+                    <label class="block font-semibold mb-1">계좌/통장 이름</label>
+                    <input type="text" id="acc-name" required placeholder="예: 토스 CMA / 토스 파킹통장" class="w-full border rounded-lg p-2.5">
                 </div>
                 <div>
-                    <label class="block font-semibold mb-1">현재 잔액 (원)</label>
-                    <input type="number" id="account-balance" placeholder="0" class="w-full p-2.5 border rounded-lg">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">계좌 유형</label>
-                    <select id="account-type" class="w-full p-2.5 border rounded-lg bg-slate-50">
-                        <option value="checking">입출금 통장</option>
-                        <option value="cma">CMA / 파킹통장</option>
-                        <option value="investment">증권 / 주식 / ISA</option>
+                    <label class="block font-semibold mb-1">종류</label>
+                    <select id="acc-type" class="w-full border rounded-lg p-2.5">
+                        <option value="CMA/파킹">CMA / 파킹통장</option>
+                        <option value="입출금">일반 입출금</option>
+                        <option value="증권">증권 / 투자</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block font-semibold mb-1">우대 조건 및 특이사항 메모</label>
-                    <input type="text" id="account-memo" placeholder="예: 평잔 50만원 유지 필수, 카드실적 20만원" class="w-full p-2.5 border rounded-lg">
+                    <label class="block font-semibold mb-1">현재 잔액 (원)</label>
+                    <input type="number" id="acc-balance" required placeholder="0" class="w-full border rounded-lg p-2.5">
                 </div>
-                <button onclick="saveAccount()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg shadow mt-2">저장하기</button>
-            </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-account')" class="w-1/2 border py-2.5 rounded-lg font-bold text-slate-500">취소</button>
+                    <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-lg font-bold">저장</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- JavaScript 로직 -->
+    <!-- 자바스크립트 로직 -->
     <script>
-        // 초기 자산 데이터 세팅 (사용자 제공 내역 기반)
-        const initialData = {
+        // 기본 앱 데이터 구조
+        let appData = {
             accounts: [
-                { id: 1, name: "토스뱅크 통장", balance: 0, type: "checking", memo: "" },
-                { id: 2, name: "국민은행 통장", balance: 9003, type: "checking", memo: "청약/연금저축 자동이체 계좌" },
-                { id: 3, name: "우리은행 통장", balance: 53117, type: "checking", memo: "주사용 계좌 (매달 카드실적 20만원 필요)" },
-                { id: 4, name: "웰컴저축은행 통장", balance: 4801384, type: "cma", memo: "27.03.19까지 평잔 50만 유지 필수 (적금 우대용). 매달 19일 적금 20만 자동이체" },
-                { id: 5, name: "하나은행 통장", balance: 0, type: "checking", memo: "" },
-                { id: 6, name: "신한은행 통장", balance: 0, type: "checking", memo: "" },
-                { id: 7, name: "Npay머니 통장", balance: 2000487, type: "cma", memo: "가입 1년간 200만원 한도 연 4.0%" },
-                { id: 8, name: "농협은행 통장", balance: 0, type: "checking", memo: "" },
-                { id: 9, name: "삼성증권 종합", balance: 0, type: "investment", memo: "말일 기준 100만원 잔액 유지 시 CMA +0.4% 우대" },
-                { id: 10, name: "삼성증권 CMA 계좌", balance: 2000000, type: "cma", memo: "기본 3.7%, 말일 종합계좌 100만 보유시 우대 4.1%" },
-                { id: 11, name: "im은행 통장", balance: 0, type: "checking", memo: "" },
-                { id: 12, name: "메리츠증권 (미국주식+예수금)", balance: 5500000, type: "investment", memo: "원화 예수금 연 2.5% 적용" },
-                { id: 13, name: "NH투자증권 ISA계좌", balance: 3418110, type: "investment", memo: "ETF 보유 + 예수금 98,110원 (월/금 자동매수)" },
-                { id: 14, name: "NH투자증권 CMA계좌", balance: 113, type: "cma", memo: "이율 2%, S&P500 1주 보유" },
-                { id: 15, name: "토스증권", balance: 0, type: "investment", memo: "반도체 ETF 2주, 마벨테크놀로지 1주 보유" }
+                { id: 1, name: "모니모 종합 계좌", type: "입출금", balance: 1000000 },
+                { id: 2, name: "토스뱅크 파킹통장", type: "CMA/파킹", balance: 5000000 }
             ],
             cards: [
-                { id: 1, name: "우리은행 카드의정석", target: 200000, current: 0, benefit: "주사용 계좌 결제 실적 20만원 충족용" },
-                { id: 2, name: "신한 체크카드", target: 1, current: 0, benefit: "신한 적금9단 우대금리 조건 (+1.0%p)" }
+                {
+                    id: 1,
+                    name: "신한 K-패스 체크카드",
+                    target: 300000,
+                    current: 180000,
+                    benefitTitle: "스타벅스 1만 원 이상 결제 시 할인",
+                    targetCount: 4,
+                    usedCount: 1
+                }
             ],
             savings: [
-                { id: 1, name: "주택청약종합저축", amount: 20000, cycle: "monthly", day: 3, rateBase: 2.8, rateBonus: 0, startDate: "", endDate: "", memo: "국민은행 자동이체 / 납입 누적 9,650,000원" },
-                { id: 2, name: "웰컴 적금", amount: 200000, cycle: "monthly", day: 19, rateBase: 1.0, rateBonus: 6.0, startDate: "2026-03-19", endDate: "2027-03-19", memo: "웰컴통장 평잔 50만(+4%) + 8회 이상 자동이체(+2%) / 현재 1,400,000원" },
-                { id: 3, name: "Npay우리 적금", amount: 300000, cycle: "monthly", day: 17, rateBase: 4.5, rateBonus: 0, startDate: "2026-04-17", endDate: "2026-10-17", memo: "6개월 만기 / 납입 누적 1,800,000원" },
-                { id: 4, name: "삼성 팝콘저축_젤리콤보", amount: 0, cycle: "weekly", weekday: 1, rateBase: 3.0, rateBonus: 5.0, startDate: "2026-03-31", endDate: "2026-09-30", memo: "만기 완납 3,600,000원 / 만기 예상 3,656,580원" },
-                { id: 5, name: "삼성 팝콘저축_여행콤보", amount: 0, cycle: "weekly", weekday: 1, rateBase: 3.0, rateBonus: 5.0, startDate: "2026-03-31", endDate: "2026-09-30", memo: "만기 완납 3,600,000원 / 만기 예상 3,656,580원" },
-                { id: 6, name: "삼성 연금저축", amount: 100000, cycle: "monthly", day: 5, rateBase: 0, rateBonus: 0, startDate: "2024-09-03", endDate: "", memo: "국민은행 자동이체 / 현재 25회 납부" },
-                { id: 7, name: "신한 적금9단", amount: 300000, cycle: "monthly", day: 18, rateBase: 8.0, rateBonus: 1.0, startDate: "2026-09-19", endDate: "2027-09-19", memo: "신한 체크카드 1원 이상 사용 시 우대 / 납입 300,000원" },
-                { id: 8, name: "im뱅크 더쿠폰적금", amount: 200000, cycle: "monthly", day: 18, rateBase: 11.0, rateBonus: 0, startDate: "2026-09-19", endDate: "2027-03-19", memo: "6개월 만기 / 납입 200,000원" }
+                { id: 1, name: "신한 적금 9단", cycle: "monthly", payDay: 10, amount: 200000, rateBase: 3.0, ratePrime: 2.0 }
             ],
-            incomes: [
-                { id: 1, title: "월급", amount: 1300000, day: 17, memo: "고정 수입" },
-                { id: 2, title: "청년월세지원", amount: 200000, day: 23, memo: "지원금" },
-                { id: 3, title: "용돈 (변동)", amount: 400000, day: 25, memo: "아빠 용돈 (변동 위험)" }
+            conditions: [
+                { id: 1, title: "모니모 CMA 우대금리 이체", target: "삼성증권", cycle: "lastDay", doneThisMonth: false },
+                { id: 2, title: "신한 체크카드 사용 실적 1회", target: "신한 적금 9단", cycle: "weekly", doneThisMonth: true }
             ],
-            expenses: [
-                { id: 1, title: "쿠팡 구독료", amount: 7980, day: 1, memo: "" },
-                { id: 2, title: "배민 구독료", amount: 1990, day: 10, memo: "" },
-                { id: 3, title: "네이버 클라우드", amount: 1650, day: 20, memo: "" },
-                { id: 4, title: "애플 iCloud", amount: 4400, day: 13, memo: "" },
-                { id: 5, title: "구글 클라우드", amount: 3900, day: 23, memo: "" },
-                { id: 6, title: "생활비", amount: 900000, day: 1, memo: "월 예상 생활비" },
-                { id: 7, title: "통신요금", amount: 60000, day: 30, memo: "말일 출금" },
-                { id: 8, title: "보험료", amount: 160000, day: 4, memo: "4일 출금" }
-            ],
+            incomes: [{ id: 1, title: "알바비", amount: 600000, day: 15 }],
+            expenses: [{ id: 2, title: "통신비", amount: 45000, day: 25 }],
             apptech: [
-                { id: 1, appName: "토스", title: "만보기 1만보", cycle: "daily", time: "20:00", done: false },
-                { id: 2, appName: "모니모", title: "기상 미션 & 광고 시청", cycle: "daily", time: "08:00", done: false },
-                { id: 3, appName: "Npay우리", title: "주1회 출석체크 스탬프", cycle: "weekly", time: "10:00", done: false }
-            ]
+                { id: 1, app: "토스", title: "만보기 걸음 수 채우기", cycle: "daily", done: false },
+                { id: 2, app: "모니모", title: "아침 기상 챌린지", cycle: "daily", done: true }
+            ],
+            apptechView: "daily",
+            lastResetMonth: new Date().getMonth()
         };
 
-        let appData = {
-            accounts: JSON.parse(localStorage.getItem('app_accounts')) || initialData.accounts,
-            cards: JSON.parse(localStorage.getItem('app_cards')) || initialData.cards,
-            savings: JSON.parse(localStorage.getItem('app_savings')) || initialData.savings,
-            incomes: JSON.parse(localStorage.getItem('app_incomes')) || initialData.incomes,
-            expenses: JSON.parse(localStorage.getItem('app_expenses')) || initialData.expenses,
-            apptech: JSON.parse(localStorage.getItem('app_apptech')) || initialData.apptech
+        let currentCalendarDate = new Date();
+        let selectedCalendarDay = new Date().getDate();
+
+        // 페이지 로드 초기화
+        window.onload = function() {
+            loadLocalData();
+            checkMonthlyReset();
+            renderHeaderDate();
+            renderTodayAlerts();
+            renderDashboard();
+            renderCards();
+            renderApptech();
+            renderCalendar();
+            renderSavings();
+            renderAccounts();
         };
 
-        let curYear = new Date().getFullYear();
-        let curMonth = new Date().getMonth();
-        let selectedApptechTab = 'daily';
-
-        function saveData() {
-            localStorage.setItem('app_accounts', JSON.stringify(appData.accounts));
-            localStorage.setItem('app_cards', JSON.stringify(appData.cards));
-            localStorage.setItem('app_savings', JSON.stringify(appData.savings));
-            localStorage.setItem('app_incomes', JSON.stringify(appData.incomes));
-            localStorage.setItem('app_expenses', JSON.stringify(appData.expenses));
-            localStorage.setItem('app_apptech', JSON.stringify(appData.apptech));
-            renderAll();
+        // LocalStorage 관리
+        function saveLocalData() {
+            localStorage.setItem('smart_finance_data', JSON.stringify(appData));
+        }
+        function loadLocalData() {
+            const saved = localStorage.getItem('smart_finance_data');
+            if (saved) {
+                appData = JSON.parse(saved);
+            }
         }
 
-        function switchTab(tabName) {
+        // 매월 1일 혜택/미션 자동 초기화 로직
+        function checkMonthlyReset() {
+            const currentMonth = new Date().getMonth();
+            if (appData.lastResetMonth !== currentMonth) {
+                appData.conditions.forEach(c => c.doneThisMonth = false);
+                appData.cards.forEach(c => c.usedCount = 0);
+                appData.lastResetMonth = currentMonth;
+                saveLocalData();
+            }
+        }
+
+        // 오늘 말일 여부 확인 함수
+        function isTodayLastDay() {
+            const today = new Date();
+            const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+            return tomorrow.getDate() === 1;
+        }
+
+        // 헤더 날짜
+        function renderHeaderDate() {
+            const today = new Date();
+            document.getElementById('current-month-text').innerText = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 기준`;
+        }
+
+        // 🚨 오늘 할 일: 우대금리 긴급 알림 바
+        function renderTodayAlerts() {
+            const container = document.getElementById('today-alert-container');
+            container.innerHTML = '';
+
+            const isLastDay = isTodayLastDay();
+            const todayDay = new Date().getDate();
+
+            let pendingAlerts = appData.conditions.filter(c => {
+                if (c.doneThisMonth) return false;
+                if (c.cycle === 'lastDay' && isLastDay) return true;
+                if (c.cycle === String(todayDay)) return true;
+                return false;
+            });
+
+            if (pendingAlerts.length > 0) {
+                pendingAlerts.forEach(item => {
+                    const alertHtml = `
+                        <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl flex items-center justify-between text-xs text-rose-800 shadow-sm animate-pulse">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-bell text-rose-600 text-sm"></i>
+                                <div>
+                                    <span class="font-bold">[오늘의 우대금리 미션]</span> ${item.title} (${item.target})
+                                </div>
+                            </div>
+                            <button onclick="toggleConditionDone(${item.id})" class="bg-rose-600 text-white px-2.5 py-1 rounded-lg font-bold shadow-xs">완료</button>
+                        </div>
+                    `;
+                    container.innerHTML += alertHtml;
+                });
+            }
+        }
+
+        // TAB 전환
+        function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-btn').forEach(el => {
-                el.classList.remove('text-indigo-600');
-                el.classList.add('text-slate-400');
+            document.getElementById(tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600');
+                btn.classList.add('text-slate-400');
             });
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-            document.getElementById(`nav-${tabName}`).classList.add('text-indigo-600');
-            document.getElementById(`nav-${tabName}`).classList.remove('text-slate-400');
+            event.currentTarget.classList.remove('text-slate-400');
+            event.currentTarget.classList.add('text-indigo-600');
         }
 
-        function openModal(id) { document.getElementById(`modal-${id}`).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(`modal-${id}`).classList.add('hidden'); }
+        // 1. 대시보드 렌더링
+        function renderDashboard() {
+            const totalIncomes = appData.incomes.reduce((sum, item) => sum + item.amount, 0);
+            const totalExpenses = appData.expenses.reduce((sum, item) => sum + item.amount, 0);
+            const totalSavings = appData.savings.reduce((sum, item) => sum + item.amount, 0);
+            const availableCash = totalIncomes - totalExpenses - totalSavings;
 
-        // --- 고정 수입/지출 CRUD ---
-        function openCashflowModal(id = null) {
-            document.getElementById('cashflow-edit-id').value = id || '';
-            document.getElementById('cashflow-modal-title').innerText = id ? '수입/지출 항목 수정' : '수입/지출 항목 추가';
+            document.getElementById('dash-available-cash').innerText = `${availableCash.toLocaleString()} 원`;
 
-            if(id) {
-                const isInc = appData.incomes.find(i => i.id === id);
-                const isExp = appData.expenses.find(e => e.id === id);
-                const item = isInc || isExp;
-                if(item) {
-                    document.getElementById('cashflow-type').value = isInc ? 'income' : 'expense';
-                    document.getElementById('cashflow-title').value = item.title;
-                    document.getElementById('cashflow-amount').value = item.amount;
-                    document.getElementById('cashflow-day').value = item.day;
-                    document.getElementById('cashflow-memo').value = item.memo || '';
-                }
+            const totalAssets = appData.accounts.reduce((sum, item) => sum + item.balance, 0);
+            document.getElementById('dash-total-assets').innerText = `${totalAssets.toLocaleString()} 원`;
+            document.getElementById('dash-total-savings').innerText = `${totalSavings.toLocaleString()} 원`;
+
+            // 우대금리 미션 리스트
+            const missionContainer = document.getElementById('dash-mission-list');
+            missionContainer.innerHTML = '';
+            if (appData.conditions.length === 0) {
+                missionContainer.innerHTML = '<p class="text-xs text-slate-400">등록된 우대금리 미션이 없습니다.</p>';
             } else {
-                document.getElementById('cashflow-type').value = 'income';
-                document.getElementById('cashflow-title').value = '';
-                document.getElementById('cashflow-amount').value = '';
-                document.getElementById('cashflow-day').value = '';
-                document.getElementById('cashflow-memo').value = '';
-            }
-            openModal('cashflow');
-        }
+                appData.conditions.forEach(item => {
+                    const badge = item.doneThisMonth 
+                        ? `<span class="bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded text-[10px]">달성 완료</span>`
+                        : `<span class="bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded text-[10px]">미달성 (D-Day)</span>`;
 
-        function saveCashflow() {
-            const id = document.getElementById('cashflow-edit-id').value;
-            const type = document.getElementById('cashflow-type').value;
-            const title = document.getElementById('cashflow-title').value.trim();
-            const amount = Number(document.getElementById('cashflow-amount').value) || 0;
-            const day = Number(document.getElementById('cashflow-day').value) || 1;
-            const memo = document.getElementById('cashflow-memo').value.trim();
-
-            if(!title) return alert('항목명을 입력하세요.');
-
-            if(id) {
-                appData.incomes = appData.incomes.filter(i => i.id !== Number(id));
-                appData.expenses = appData.expenses.filter(e => e.id !== Number(id));
-            }
-
-            const itemObj = { id: id ? Number(id) : Date.now(), title, amount, day, memo };
-            if(type === 'income') appData.incomes.push(itemObj);
-            else appData.expenses.push(itemObj);
-
-            saveData();
-            closeModal('cashflow');
-        }
-
-        function deleteCashflow(id) {
-            if(confirm('이 항목을 삭제하시겠습니까?')) {
-                appData.incomes = appData.incomes.filter(i => i.id !== id);
-                appData.expenses = appData.expenses.filter(e => e.id !== id);
-                saveData();
+                    missionContainer.innerHTML += `
+                        <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <button onclick="toggleConditionDone(${item.id})" class="text-base text-slate-400">
+                                    <i class="fa-${item.doneThisMonth ? 'solid fa-circle-check text-emerald-600' : 'regular fa-circle'}"></i>
+                                </button>
+                                <div>
+                                    <div class="font-bold text-slate-800">${item.title}</div>
+                                    <div class="text-[10px] text-slate-400">${item.target} • 주기: ${item.cycle === 'lastDay' ? '매달 말일' : item.cycle + '일'}</div>
+                                </div>
+                            </div>
+                            ${badge}
+                        </div>
+                    `;
+                });
             }
         }
 
-        function renderCashflowList() {
-            const listEl = document.getElementById('cashflow-list');
-            listEl.innerHTML = '';
+        function toggleConditionDone(id) {
+            const item = appData.conditions.find(c => c.id === id);
+            if (item) {
+                item.doneThisMonth = !item.doneThisMonth;
+                saveLocalData();
+                renderTodayAlerts();
+                renderDashboard();
+            }
+        }
 
-            appData.incomes.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'flex justify-between items-center p-2 rounded-lg bg-emerald-50 text-xs border border-emerald-100';
-                div.innerHTML = `
-                    <div>
-                        <span class="font-bold text-emerald-800">[수입] ${item.title}</span>
-                        <span class="text-slate-400 text-[10px] ml-1">(매달 ${item.day}일)</span>
-                        ${item.memo ? `<p class="text-[10px] text-emerald-600">${item.memo}</p>` : ''}
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="font-bold text-emerald-700">+${Number(item.amount).toLocaleString()}원</span>
-                        <button onclick="openCashflowModal(${item.id})" class="text-slate-400 hover:text-indigo-600"><i class="ph ph-pencil-simple"></i></button>
-                        <button onclick="deleteCashflow(${item.id})" class="text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
+        // 2. 카드 & 혜택 렌더링
+        function renderCards() {
+            const container = document.getElementById('card-list');
+            container.innerHTML = '';
+
+            appData.cards.forEach(card => {
+                const percent = Math.min(100, Math.round((card.current / card.target) * 100));
+                const remaining = Math.max(0, card.target - card.current);
+
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-sm text-slate-900">${card.name}</h3>
+                                <p class="text-xs text-slate-500">목표 실적: ${card.target.toLocaleString()} 원</p>
+                            </div>
+                            <div class="flex gap-2 text-slate-400 text-xs">
+                                <button onclick="editCard(${card.id})" class="hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteCard(${card.id})" class="hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- 실적 진행률 Bar -->
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-indigo-600">${percent}% 달성</span>
+                                <span class="text-slate-500">남은 금액: ${remaining.toLocaleString()} 원</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-indigo-600 h-2 rounded-full" style="width: ${percent}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- 혜택 카운터 Box -->
+                        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex items-center justify-between text-xs">
+                            <div>
+                                <span class="font-bold text-slate-700">${card.benefitTitle || '주요 혜택'}</span>
+                                <div class="text-[10px] text-slate-400">월 ${card.targetCount || 4}회 중 ${card.usedCount || 0}회 이용 완료</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="changeBenefitCount(${card.id}, -1)" class="w-6 h-6 bg-white border rounded font-bold">-</button>
+                                <span class="font-bold text-indigo-600">${card.usedCount || 0} / ${card.targetCount || 4}</span>
+                                <button onclick="changeBenefitCount(${card.id}, 1)" class="w-6 h-6 bg-white border rounded font-bold">+</button>
+                            </div>
+                        </div>
                     </div>
                 `;
-                listEl.appendChild(div);
-            });
-
-            appData.expenses.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'flex justify-between items-center p-2 rounded-lg bg-rose-50 text-xs border border-rose-100';
-                div.innerHTML = `
-                    <div>
-                        <span class="font-bold text-rose-800">[지출] ${item.title}</span>
-                        <span class="text-slate-400 text-[10px] ml-1">(매달 ${item.day}일)</span>
-                        ${item.memo ? `<p class="text-[10px] text-rose-600">${item.memo}</p>` : ''}
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="font-bold text-rose-700">-${Number(item.amount).toLocaleString()}원</span>
-                        <button onclick="openCashflowModal(${item.id})" class="text-slate-400 hover:text-indigo-600"><i class="ph ph-pencil-simple"></i></button>
-                        <button onclick="deleteCashflow(${item.id})" class="text-slate-400 hover:text-rose-500"><i class="ph ph-trash"></i></button>
-                    </div>
-                `;
-                listEl.appendChild(div);
             });
         }
 
-        // --- 앱테크 CRUD ---
-        function openApptechModal(id = null) {
-            document.getElementById('apptech-edit-id').value = id || '';
-            document.getElementById('apptech-modal-title').innerText = id ? '앱테크 수정' : '앱테크 추가';
-
-            if(id) {
-                const item = appData.apptech.find(a => a.id === id);
-                if(item) {
-                    document.getElementById('apptech-app').value = item.appName;
-                    document.getElementById('apptech-title').value = item.title;
-                    document.getElementById('apptech-cycle').value = item.cycle;
-                    document.getElementById('apptech-time').value = item.time || '';
-                }
-            } else {
-                document.getElementById('apptech-app').value = '';
-                document.getElementById('apptech-title').value = '';
-                document.getElementById('apptech-cycle').value = 'daily';
-                document.getElementById('apptech-time').value = '';
-            }
-            openModal('apptech');
-        }
-
-        function saveApptech() {
-            const id = document.getElementById('apptech-edit-id').value;
-            const appName = document.getElementById('apptech-app').value.trim() || '기타';
-            const title = document.getElementById('apptech-title').value.trim();
-            const cycle = document.getElementById('apptech-cycle').value;
-            const time = document.getElementById('apptech-time').value;
-
-            if(!title) return alert('미션 내용을 입력하세요.');
-
-            const apptechObj = { id: id ? Number(id) : Date.now(), appName, title, cycle, time, done: false };
-
-            if(id) {
-                const idx = appData.apptech.findIndex(a => a.id === Number(id));
-                if(idx !== -1) appData.apptech[idx] = apptechObj;
-            } else {
-                appData.apptech.push(apptechObj);
-            }
-
-            saveData();
-            closeModal('apptech');
-        }
-
-        function deleteApptech(id) {
-            if(confirm('이 미션을 삭제하시겠습니까?')) {
-                appData.apptech = appData.apptech.filter(a => a.id !== id);
-                saveData();
+        function changeBenefitCount(cardId, delta) {
+            const card = appData.cards.find(c => c.id === cardId);
+            if (card) {
+                card.usedCount = Math.max(0, Math.min(card.targetCount, (card.usedCount || 0) + delta));
+                saveLocalData();
+                renderCards();
             }
         }
 
+        // 3. 앱테크 렌더링 (플랫폼별 그룹화)
         function renderApptech() {
-            const listEl = document.getElementById('apptech-list');
-            listEl.innerHTML = '';
+            const container = document.getElementById('apptech-group-list');
+            container.innerHTML = '';
 
-            const filtered = appData.apptech.filter(a => a.cycle === selectedApptechTab);
-            if(filtered.length === 0) {
-                listEl.innerHTML = `<div class="text-xs text-slate-400 text-center py-6">등록된 미션이 없습니다.</div>`;
+            const filtered = appData.apptech.filter(item => item.cycle === appData.apptechView);
+
+            // 앱별 카테고리 그룹화
+            const grouped = {};
+            filtered.forEach(item => {
+                const appName = item.app || '기타';
+                if (!grouped[appName]) grouped[appName] = [];
+                grouped[appName].push(item);
+            });
+
+            if (Object.keys(grouped).length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400 text-center py-6">등록된 앱테크 미션이 없습니다.</p>';
                 return;
             }
 
-            const grouped = {};
-            filtered.forEach(item => {
-                const app = item.appName || '기타';
-                if(!grouped[app]) grouped[app] = [];
-                grouped[app].push(item);
-            });
-
-            Object.keys(grouped).forEach(appName => {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'bg-white rounded-xl border border-slate-200 p-3.5 space-y-2 shadow-sm';
-                
-                let itemsHtml = grouped[appName].map(item => `
-                    <div class="flex items-center justify-between py-1 border-b border-slate-100 last:border-0">
-                        <div class="flex items-center space-x-2.5">
-                            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleApptech(${item.id})" class="w-4 h-4 accent-indigo-600 rounded">
-                            <span class="text-xs ${item.done ? 'line-through text-slate-400' : 'text-slate-800 font-medium'}">${item.title}</span>
-                            ${item.time ? `<span class="text-[10px] text-slate-400">(${item.time})</span>` : ''}
+            for (let appName in grouped) {
+                let groupHtml = `
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                        <div class="font-bold text-xs text-indigo-600 flex items-center gap-1.5 border-b border-slate-100 pb-1.5">
+                            <i class="fa-solid fa-mobile-screen"></i> ${appName}
                         </div>
-                        <div class="flex space-x-1">
-                            <button onclick="openApptechModal(${item.id})" class="text-slate-300 hover:text-indigo-600 text-xs"><i class="ph ph-pencil-simple"></i></button>
-                            <button onclick="deleteApptech(${item.id})" class="text-slate-300 hover:text-rose-500 text-xs"><i class="ph ph-trash"></i></button>
-                        </div>
-                    </div>
-                `).join('');
-
-                groupDiv.innerHTML = `
-                    <div class="text-xs font-bold text-indigo-600 flex items-center justify-between">
-                        <span><i class="ph ph-cellphone mr-1"></i>${appName}</span>
-                    </div>
-                    <div>${itemsHtml}</div>
+                        <div class="space-y-1.5">
                 `;
-                listEl.appendChild(groupDiv);
+
+                grouped[appName].forEach(item => {
+                    groupHtml += `
+                        <div class="flex items-center justify-between text-xs">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleApptech(${item.id})" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                                <span class="${item.done ? 'line-through text-slate-400' : 'text-slate-800'} font-medium">${item.title}</span>
+                            </label>
+                            <button onclick="deleteApptech(${item.id})" class="text-slate-300 hover:text-rose-500"><i class="fa-solid fa-xmark text-xs"></i></button>
+                        </div>
+                    `;
+                });
+
+                groupHtml += `</div></div>`;
+                container.innerHTML += groupHtml;
+            }
+        }
+
+        function setApptechView(view) {
+            appData.apptechView = view;
+            ['daily', 'weekly', 'monthly'].forEach(v => {
+                const btn = document.getElementById(`btn-app-${v}`);
+                if (v === view) {
+                    btn.className = 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm';
+                } else {
+                    btn.className = 'px-2.5 py-1 rounded-md text-slate-600';
+                }
             });
+            renderApptech();
         }
 
         function toggleApptech(id) {
             const item = appData.apptech.find(a => a.id === id);
-            if(item) item.done = !item.done;
-            saveData();
+            if (item) {
+                item.done = !item.done;
+                saveLocalData();
+                renderApptech();
+            }
         }
 
-        function setApptechView(cycle) {
-            selectedApptechTab = cycle;
-            ['daily', 'weekly', 'monthly'].forEach(c => {
-                const btn = document.getElementById(`btn-apptech-${c}`);
-                btn.className = (c === cycle) ? 'px-3 py-1 rounded-full bg-indigo-600 text-white font-medium' : 'px-3 py-1 rounded-full bg-slate-200 text-slate-600 font-medium';
-            });
+        function deleteApptech(id) {
+            appData.apptech = appData.apptech.filter(a => a.id !== id);
+            saveLocalData();
             renderApptech();
         }
 
-        // --- 카드 CRUD ---
-        function openCardModal(id = null) {
-            document.getElementById('card-edit-id').value = id || '';
-            document.getElementById('card-modal-title').innerText = id ? '카드 수정' : '카드 등록';
-
-            if(id) {
-                const card = appData.cards.find(c => c.id === id);
-                if(card) {
-                    document.getElementById('card-name').value = card.name;
-                    document.getElementById('card-target').value = card.target;
-                    document.getElementById('card-current').value = card.current;
-                    document.getElementById('card-benefit').value = card.benefit || '';
-                }
-            } else {
-                document.getElementById('card-name').value = '';
-                document.getElementById('card-target').value = '';
-                document.getElementById('card-current').value = '';
-                document.getElementById('card-benefit').value = '';
-            }
-            openModal('card');
-        }
-
-        function saveCard() {
-            const id = document.getElementById('card-edit-id').value;
-            const name = document.getElementById('card-name').value.trim();
-            const target = Number(document.getElementById('card-target').value) || 0;
-            const current = Number(document.getElementById('card-current').value) || 0;
-            const benefit = document.getElementById('card-benefit').value.trim();
-
-            if(!name) return alert('카드 이름을 입력하세요.');
-
-            const cardObj = { id: id ? Number(id) : Date.now(), name, target, current, benefit };
-
-            if(id) {
-                const idx = appData.cards.findIndex(c => c.id === Number(id));
-                if(idx !== -1) appData.cards[idx] = cardObj;
-            } else {
-                appData.cards.push(cardObj);
-            }
-
-            saveData();
-            closeModal('card');
-        }
-
-        function deleteCard(id) {
-            if(confirm('이 카드를 삭제하시겠습니까?')) {
-                appData.cards = appData.cards.filter(c => c.id !== id);
-                saveData();
-            }
-        }
-
-        function renderCards() {
-            const listEl = document.getElementById('card-list');
-            listEl.innerHTML = '';
-
-            appData.cards.forEach(card => {
-                const percent = Math.min(100, Math.round((card.current / (card.target || 1)) * 100));
-                const remaining = Math.max(0, card.target - card.current);
-                const isAchieved = card.current >= card.target;
-
-                const cardEl = document.createElement('div');
-                cardEl.className = 'bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3';
-                cardEl.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <div class="flex items-center space-x-2">
-                                <h3 class="font-bold text-sm text-slate-900">${card.name}</h3>
-                                ${isAchieved ? `<span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-bold">실적 달성!</span>` : `<span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold">${remaining.toLocaleString()}원 남음</span>`}
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="openCardModal(${card.id})" class="text-slate-400 hover:text-indigo-600 text-sm"><i class="ph ph-pencil-simple"></i></button>
-                            <button onclick="deleteCard(${card.id})" class="text-slate-400 hover:text-rose-500 text-sm"><i class="ph ph-trash"></i></button>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs text-slate-500 font-medium">
-                            <span>달성률 ${percent}%</span>
-                            <span>${card.current.toLocaleString()} / ${card.target.toLocaleString()} 원</span>
-                        </div>
-                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="h-full ${isAchieved ? 'bg-emerald-500' : 'bg-indigo-600'} transition-all duration-300" style="width: ${percent}%"></div>
-                        </div>
-                    </div>
-
-                    ${card.benefit ? `
-                        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-xs text-slate-600">
-                            <span class="font-bold text-indigo-600 block mb-0.5"><i class="ph ph-gift mr-1"></i>혜택 및 우대조건</span>
-                            ${card.benefit}
-                        </div>
-                    ` : ''}
-                `;
-                listEl.appendChild(cardEl);
-            });
-        }
-
-        // --- 적금 CRUD ---
-        function openSavingsModal(id = null) {
-            document.getElementById('savings-edit-id').value = id || '';
-            document.getElementById('savings-modal-title').innerText = id ? '적금 수정' : '적금 추가';
-
-            if(id) {
-                const item = appData.savings.find(s => s.id === id);
-                if(item) {
-                    document.getElementById('savings-name').value = item.name;
-                    document.getElementById('savings-amount').value = item.amount;
-                    document.getElementById('savings-cycle').value = item.cycle || 'monthly';
-                    document.getElementById('savings-day').value = item.day || 1;
-                    document.getElementById('savings-weekday').value = item.weekday || 1;
-                    document.getElementById('savings-rate-base').value = item.rateBase;
-                    document.getElementById('savings-rate-bonus').value = item.rateBonus;
-                    document.getElementById('savings-start').value = item.startDate;
-                    document.getElementById('savings-end').value = item.endDate;
-                    document.getElementById('savings-memo').value = item.memo || '';
-                }
-            } else {
-                document.getElementById('savings-name').value = '';
-                document.getElementById('savings-amount').value = '';
-                document.getElementById('savings-cycle').value = 'monthly';
-                document.getElementById('savings-day').value = '';
-                document.getElementById('savings-rate-base').value = '';
-                document.getElementById('savings-rate-bonus').value = '';
-                document.getElementById('savings-start').value = '';
-                document.getElementById('savings-end').value = '';
-                document.getElementById('savings-memo').value = '';
-            }
-            toggleSavingsCycle();
-            openModal('savings');
-        }
-
-        function toggleSavingsCycle() {
-            const cycle = document.getElementById('savings-cycle').value;
-            if(cycle === 'weekly') {
-                document.getElementById('savings-day-monthly').classList.add('hidden');
-                document.getElementById('savings-day-weekly').classList.remove('hidden');
-            } else {
-                document.getElementById('savings-day-monthly').classList.remove('hidden');
-                document.getElementById('savings-day-weekly').classList.add('hidden');
-            }
-        }
-
-        function saveSavings() {
-            const id = document.getElementById('savings-edit-id').value;
-            const name = document.getElementById('savings-name').value.trim();
-            const amount = Number(document.getElementById('savings-amount').value) || 0;
-            const cycle = document.getElementById('savings-cycle').value;
-            const day = Number(document.getElementById('savings-day').value) || 1;
-            const weekday = Number(document.getElementById('savings-weekday').value);
-            const rateBase = Number(document.getElementById('savings-rate-base').value) || 0;
-            const rateBonus = Number(document.getElementById('savings-rate-bonus').value) || 0;
-            const startDate = document.getElementById('savings-start').value;
-            const endDate = document.getElementById('savings-end').value;
-            const memo = document.getElementById('savings-memo').value.trim();
-
-            if(!name) return alert('적금 이름을 입력하세요.');
-
-            const savingsObj = { id: id ? Number(id) : Date.now(), name, amount, cycle, day, weekday, rateBase, rateBonus, startDate, endDate, memo };
-
-            if(id) {
-                const idx = appData.savings.findIndex(s => s.id === Number(id));
-                if(idx !== -1) appData.savings[idx] = savingsObj;
-            } else {
-                appData.savings.push(savingsObj);
-            }
-
-            saveData();
-            closeModal('savings');
-        }
-
-        function deleteSavings(id) {
-            if(confirm('이 적금을 삭제하시겠습니까?')) {
-                appData.savings = appData.savings.filter(s => s.id !== id);
-                saveData();
-            }
-        }
-
-        function renderSavings() {
-            const listEl = document.getElementById('savings-list');
-            listEl.innerHTML = '';
-
-            const weekdaysText = ['일', '월', '화', '수', '목', '금', '토'];
-
-            appData.savings.forEach(item => {
-                const totalRate = (item.rateBase + item.rateBonus).toFixed(1);
-                const cycleText = item.cycle === 'weekly' ? `매주 (${weekdaysText[item.weekday]}요일)` : `매월 (${item.day}일)`;
-                
-                const card = document.createElement('div');
-                card.className = 'bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2';
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="font-bold text-sm text-slate-900">${item.name}</h3>
-                            <p class="text-[10px] text-slate-400">${item.startDate || '가입일 미지정'} ~ ${item.endDate || '만기일 미지정'}</p>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="openSavingsModal(${item.id})" class="text-slate-400 hover:text-indigo-600 text-sm"><i class="ph ph-pencil-simple"></i></button>
-                            <button onclick="deleteSavings(${item.id})" class="text-slate-400 hover:text-rose-500 text-sm"><i class="ph ph-trash"></i></button>
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center text-xs pt-1">
-                        <span class="text-slate-500">납입액: <b class="text-slate-800">${item.amount.toLocaleString()}원</b> (${cycleText})</span>
-                        <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-bold">최대 연 ${totalRate}%</span>
-                    </div>
-                    ${item.memo ? `<div class="bg-slate-50 p-2 rounded text-[11px] text-slate-600 border border-slate-100">${item.memo}</div>` : ''}
-                `;
-                listEl.appendChild(card);
-            });
-        }
-
-        // --- 계좌 자산 CRUD ---
-        function openAccountModal(id = null) {
-            document.getElementById('account-edit-id').value = id || '';
-            document.getElementById('account-modal-title').innerText = id ? '계좌 수정' : '계좌 추가';
-
-            if(id) {
-                const acc = appData.accounts.find(a => a.id === id);
-                if(acc) {
-                    document.getElementById('account-name').value = acc.name;
-                    document.getElementById('account-balance').value = acc.balance;
-                    document.getElementById('account-type').value = acc.type;
-                    document.getElementById('account-memo').value = acc.memo || '';
-                }
-            } else {
-                document.getElementById('account-name').value = '';
-                document.getElementById('account-balance').value = '';
-                document.getElementById('account-type').value = 'checking';
-                document.getElementById('account-memo').value = '';
-            }
-            openModal('account');
-        }
-
-        function saveAccount() {
-            const id = document.getElementById('account-edit-id').value;
-            const name = document.getElementById('account-name').value.trim();
-            const balance = Number(document.getElementById('account-balance').value) || 0;
-            const type = document.getElementById('account-type').value;
-            const memo = document.getElementById('account-memo').value.trim();
-
-            if(!name) return alert('계좌명을 입력하세요.');
-
-            const accObj = { id: id ? Number(id) : Date.now(), name, balance, type, memo };
-
-            if(id) {
-                const idx = appData.accounts.findIndex(a => a.id === Number(id));
-                if(idx !== -1) appData.accounts[idx] = accObj;
-            } else {
-                appData.accounts.push(accObj);
-            }
-
-            saveData();
-            closeModal('account');
-        }
-
-        function deleteAccount(id) {
-            if(confirm('이 계좌를 삭제하시겠습니까?')) {
-                appData.accounts = appData.accounts.filter(a => a.id !== id);
-                saveData();
-            }
-        }
-
-        function renderAccounts() {
-            const listEl = document.getElementById('account-list');
-            listEl.innerHTML = '';
-
-            appData.accounts.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1.5';
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-500">${item.type}</span>
-                            <h3 class="font-bold text-sm text-slate-900 mt-1">${item.name}</h3>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="openAccountModal(${item.id})" class="text-slate-400 hover:text-indigo-600 text-sm"><i class="ph ph-pencil-simple"></i></button>
-                            <button onclick="deleteAccount(${item.id})" class="text-slate-400 hover:text-rose-500 text-sm"><i class="ph ph-trash"></i></button>
-                        </div>
-                    </div>
-                    <div class="text-indigo-600 font-extrabold text-base">${Number(item.balance).toLocaleString()}원</div>
-                    ${item.memo ? `<p class="text-[11px] text-slate-500 bg-slate-50 p-2 rounded border border-slate-100">${item.memo}</p>` : ''}
-                `;
-                listEl.appendChild(card);
-            });
-        }
-
-        // --- 기타 UI & 달력 ---
-        function renderDashboard() {
-            const totalAssets = appData.accounts.reduce((acc, cur) => acc + Number(cur.balance), 0);
-            const totalIncomes = appData.incomes.reduce((acc, cur) => acc + Number(cur.amount), 0);
-            const totalExpenses = appData.expenses.reduce((acc, cur) => acc + Number(cur.amount), 0);
-            const totalSavings = appData.savings.reduce((acc, cur) => acc + (cur.cycle === 'monthly' ? Number(cur.amount) : 0), 0);
-            
-            const netCashflow = totalIncomes - totalExpenses - totalSavings;
-
-            document.getElementById('dash-available').innerText = netCashflow.toLocaleString() + '원';
-            document.getElementById('dash-income').innerText = '+' + totalIncomes.toLocaleString() + '원';
-            document.getElementById('dash-expense').innerText = '-' + (totalExpenses + totalSavings).toLocaleString() + '원';
-            document.getElementById('dash-total-assets').innerText = totalAssets.toLocaleString() + '원';
-
-            const achievedCards = appData.cards.filter(c => c.current >= c.target).length;
-            document.getElementById('dash-card-status').innerText = `${achievedCards} / ${appData.cards.length} 개 달성`;
-        }
-
+        // 4. 금융 달력 렌더링
         function renderCalendar() {
-            document.getElementById('calendar-month-year').innerText = `${curYear}년 ${curMonth + 1}월`;
-            const grid = document.getElementById('calendar-grid');
-            grid.innerHTML = '';
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
 
-            const firstDay = new Date(curYear, curMonth, 1).getDay();
-            const lastDate = new Date(curYear, curMonth + 1, 0).getDate();
+            document.getElementById('calendar-month-year').innerText = `${year}년 ${month + 1}월`;
 
-            for(let i = 0; i < firstDay; i++) grid.innerHTML += `<div></div>`;
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
 
-            for(let d = 1; d <= lastDate; d++) {
-                const hasIncome = appData.incomes.some(i => i.day === d);
-                const hasExpense = appData.expenses.some(e => e.day === d);
-                const hasSavings = appData.savings.some(s => s.cycle === 'monthly' && s.day === d);
+            const daysContainer = document.getElementById('calendar-days');
+            daysContainer.innerHTML = '';
 
-                grid.innerHTML += `
-                    <div onclick="selectCalendarDate(${d})" class="p-1.5 min-h-[44px] border border-slate-100 rounded-lg flex flex-col justify-between items-center cursor-pointer hover:bg-slate-50">
-                        <span class="font-semibold text-slate-700">${d}</span>
-                        <div class="flex space-x-0.5">
-                            ${hasIncome ? `<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>` : ''}
-                            ${hasExpense ? `<span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>` : ''}
-                            ${hasSavings ? `<span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>` : ''}
+            for (let i = 0; i < firstDay; i++) {
+                daysContainer.innerHTML += `<div></div>`;
+            }
+
+            for (let day = 1; day <= lastDate; day++) {
+                const hasIncome = appData.incomes.some(i => i.day === day);
+                const hasExpense = appData.expenses.some(e => e.day === day);
+                const hasSavings = appData.savings.some(s => s.payDay === day);
+
+                const isSelected = day === selectedCalendarDay ? 'bg-indigo-600 text-white font-bold rounded-lg' : 'hover:bg-slate-100';
+
+                daysContainer.innerHTML += `
+                    <div onclick="selectCalendarDay(${day})" class="p-2 cursor-pointer relative ${isSelected}">
+                        <span>${day}</span>
+                        <div class="flex justify-center gap-0.5 mt-0.5">
+                            ${hasIncome ? '<span class="w-1 h-1 bg-emerald-500 rounded-full"></span>' : ''}
+                            ${hasExpense ? '<span class="w-1 h-1 bg-rose-500 rounded-full"></span>' : ''}
+                            ${hasSavings ? '<span class="w-1 h-1 bg-purple-500 rounded-full"></span>' : ''}
                         </div>
                     </div>
                 `;
             }
+
+            renderSelectedDateItems();
         }
 
         function changeMonth(delta) {
-            curMonth += delta;
-            if(curMonth < 0) { curMonth = 11; curYear--; }
-            if(curMonth > 11) { curMonth = 0; curYear++; }
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
             renderCalendar();
         }
 
-        function selectCalendarDate(day) {
-            document.getElementById('selected-date-title').innerText = `${curYear}년 ${curMonth + 1}월 ${day}일 내역`;
-            const eventsEl = document.getElementById('selected-date-events');
-            eventsEl.innerHTML = '';
+        function selectCalendarDay(day) {
+            selectedCalendarDay = day;
+            renderCalendar();
+        }
 
-            const incs = appData.incomes.filter(i => i.day === day);
-            const exps = appData.expenses.filter(e => e.day === day);
-            const savs = appData.savings.filter(s => s.cycle === 'monthly' && s.day === day);
+        function renderSelectedDateItems() {
+            const day = selectedCalendarDay;
+            document.getElementById('selected-date-text').innerText = `${currentCalendarDate.getMonth() + 1}월 ${day}일 일정 내역`;
 
-            if(incs.length === 0 && exps.length === 0 && savs.length === 0) {
-                eventsEl.innerHTML = `<p class="text-slate-400">예정된 이벤트가 없습니다.</p>`;
+            const container = document.getElementById('selected-date-items');
+            container.innerHTML = '';
+
+            const incomes = appData.incomes.filter(i => i.day === day);
+            const expenses = appData.expenses.filter(e => e.day === day);
+            const savings = appData.savings.filter(s => s.payDay === day);
+
+            if (incomes.length === 0 && expenses.length === 0 && savings.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-center py-2">예정된 일정 또는 지출/수입이 없습니다.</p>';
                 return;
             }
 
-            incs.forEach(i => eventsEl.innerHTML += `<div class="flex justify-between text-emerald-600 font-semibold"><span>[수입] ${i.title}</span><span>+${Number(i.amount).toLocaleString()}원</span></div>`);
-            exps.forEach(e => eventsEl.innerHTML += `<div class="flex justify-between text-rose-500 font-semibold"><span>[지출] ${e.title}</span><span>-${Number(e.amount).toLocaleString()}원</span></div>`);
-            savs.forEach(s => eventsEl.innerHTML += `<div class="flex justify-between text-indigo-600 font-semibold"><span>[적금] ${s.name}</span><span>-${Number(s.amount).toLocaleString()}원</span></div>`);
+            incomes.forEach(i => {
+                container.innerHTML += `<div class="flex justify-between p-2 bg-emerald-50 text-emerald-800 rounded"><span>[수입] ${i.title}</span><b>+${i.amount.toLocaleString()} 원</b></div>`;
+            });
+            expenses.forEach(e => {
+                container.innerHTML += `<div class="flex justify-between p-2 bg-rose-50 text-rose-800 rounded"><span>[지출] ${e.title}</span><b>-${e.amount.toLocaleString()} 원</b></div>`;
+            });
+            savings.forEach(s => {
+                container.innerHTML += `<div class="flex justify-between p-2 bg-purple-50 text-purple-800 rounded"><span>[적금] ${s.name}</span><b>-${s.amount.toLocaleString()} 원</b></div>`;
+            });
         }
 
-        function renderAll() {
+        // 5. 적금 렌더링
+        function renderSavings() {
+            const container = document.getElementById('savings-list');
+            container.innerHTML = '';
+
+            appData.savings.forEach(item => {
+                const totalRate = (item.rateBase + (item.ratePrime || 0)).toFixed(1);
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center text-xs">
+                        <div>
+                            <div class="font-bold text-sm text-slate-900">${item.name}</div>
+                            <div class="text-slate-500 mt-0.5">
+                                납입: 매월 ${item.payDay || 10}일 • ${item.amount.toLocaleString()} 원
+                            </div>
+                            <div class="text-indigo-600 font-semibold mt-1">
+                                최고 금리 연 ${totalRate}% (기본 ${item.rateBase}% + 우대 ${item.ratePrime || 0}%)
+                            </div>
+                        </div>
+                        <div class="flex gap-2 text-slate-400">
+                            <button onclick="editSavings(${item.id})" class="hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteSavings(${item.id})" class="hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 6. 계좌 자산 렌더링
+        function renderAccounts() {
+            const container = document.getElementById('account-list');
+            container.innerHTML = '';
+
+            appData.accounts.forEach(acc => {
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center text-xs">
+                        <div>
+                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${acc.type}</span>
+                            <div class="font-bold text-sm text-slate-900 mt-1">${acc.name}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-extrabold text-sm text-slate-900">${acc.balance.toLocaleString()} 원</div>
+                            <div class="flex justify-end gap-2 text-slate-400 mt-1">
+                                <button onclick="editAccount(${acc.id})" class="hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteAccount(${acc.id})" class="hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- 모달 조작 및 등록/수정/삭제 (CRUD) 핸들러 ---
+        function openQuickAddModal() { document.getElementById('modal-quickAdd').classList.remove('hidden'); }
+        function openConditionModal() { document.getElementById('modal-condition').classList.remove('hidden'); }
+        function openCardModal() { document.getElementById('modal-card').classList.remove('hidden'); }
+        function openSavingsModal() { document.getElementById('modal-savings').classList.remove('hidden'); }
+        function openAccountModal() { document.getElementById('modal-account').classList.remove('hidden'); }
+
+        function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+
+        function toggleQuickFields() {
+            const type = document.getElementById('quick-type').value;
+            if (type === 'apptech') {
+                document.getElementById('field-amount').classList.add('hidden');
+                document.getElementById('field-apptech').classList.remove('hidden');
+            } else {
+                document.getElementById('field-amount').classList.remove('hidden');
+                document.getElementById('field-apptech').classList.add('hidden');
+            }
+        }
+
+        function saveQuickAdd(e) {
+            e.preventDefault();
+            const type = document.getElementById('quick-type').value;
+            const title = document.getElementById('quick-title').value;
+            const amount = parseInt(document.getElementById('quick-amount').value) || 0;
+            const day = parseInt(document.getElementById('quick-day').value) || 1;
+
+            if (type === 'income') {
+                appData.incomes.push({ id: Date.now(), title, amount, day });
+            } else if (type === 'expense') {
+                appData.expenses.push({ id: Date.now(), title, amount, day });
+            } else if (type === 'apptech') {
+                const appName = document.getElementById('quick-app-name').value || '기타';
+                const cycle = document.getElementById('quick-app-cycle').value;
+                appData.apptech.push({ id: Date.now(), app: appName, title, cycle, done: false });
+            }
+
+            saveLocalData();
+            closeModal('modal-quickAdd');
             renderDashboard();
-            renderCashflowList();
-            renderApptech();
             renderCalendar();
-            renderCards();
-            renderSavings();
-            renderAccounts();
+            renderApptech();
         }
 
-        renderAll();
+        function saveCondition(e) {
+            e.preventDefault();
+            const id = document.getElementById('cond-id').value;
+            const title = document.getElementById('cond-title').value;
+            const target = document.getElementById('cond-target').value;
+            const cycle = document.getElementById('cond-cycle').value;
+
+            if (id) {
+                const cond = appData.conditions.find(c => c.id == id);
+                if (cond) { cond.title = title; cond.target = target; cond.cycle = cycle; }
+            } else {
+                appData.conditions.push({ id: Date.now(), title, target, cycle, doneThisMonth: false });
+            }
+
+            saveLocalData();
+            closeModal('modal-condition');
+            renderDashboard();
+            renderTodayAlerts();
+        }
+
+        function saveCard(e) {
+            e.preventDefault();
+            const id = document.getElementById('card-id').value;
+            const name = document.getElementById('card-name').value;
+            const target = parseInt(document.getElementById('card-target').value) || 0;
+            const current = parseInt(document.getElementById('card-current').value) || 0;
+            const benefitTitle = document.getElementById('card-benefit-title').value;
+            const targetCount = parseInt(document.getElementById('card-benefit-count').value) || 4;
+
+            if (id) {
+                const card = appData.cards.find(c => c.id == id);
+                if (card) {
+                    card.name = name; card.target = target; card.current = current;
+                    card.benefitTitle = benefitTitle; card.targetCount = targetCount;
+                }
+            } else {
+                appData.cards.push({ id: Date.now(), name, target, current, benefitTitle, targetCount, usedCount: 0 });
+            }
+
+            saveLocalData();
+            closeModal('modal-card');
+            renderCards();
+        }
+
+        function deleteCard(id) {
+            appData.cards = appData.cards.filter(c => c.id !== id);
+            saveLocalData();
+            renderCards();
+        }
+
+        function editCard(id) {
+            const card = appData.cards.find(c => c.id === id);
+            if (card) {
+                document.getElementById('card-id').value = card.id;
+                document.getElementById('card-name').value = card.name;
+                document.getElementById('card-target').value = card.target;
+                document.getElementById('card-current').value = card.current;
+                document.getElementById('card-benefit-title').value = card.benefitTitle || '';
+                document.getElementById('card-benefit-count').value = card.targetCount || 4;
+                openCardModal();
+            }
+        }
+
+        function saveSavings(e) {
+            e.preventDefault();
+            const id = document.getElementById('sav-id').value;
+            const name = document.getElementById('sav-name').value;
+            const cycle = document.getElementById('sav-cycle').value;
+            const amount = parseInt(document.getElementById('sav-amount').value) || 0;
+            const payDay = parseInt(document.getElementById('sav-pay-day').value) || 10;
+            const rateBase = parseFloat(document.getElementById('sav-rate-base').value) || 0;
+            const ratePrime = parseFloat(document.getElementById('sav-rate-prime').value) || 0;
+
+            if (id) {
+                const sav = appData.savings.find(s => s.id == id);
+                if (sav) {
+                    sav.name = name; sav.cycle = cycle; sav.amount = amount;
+                    sav.payDay = payDay; sav.rateBase = rateBase; sav.ratePrime = ratePrime;
+                }
+            } else {
+                appData.savings.push({ id: Date.now(), name, cycle, amount, payDay, rateBase, ratePrime });
+            }
+
+            saveLocalData();
+            closeModal('modal-savings');
+            renderSavings();
+            renderDashboard();
+        }
+
+        function editSavings(id) {
+            const sav = appData.savings.find(s => s.id === id);
+            if (sav) {
+                document.getElementById('sav-id').value = sav.id;
+                document.getElementById('sav-name').value = sav.name;
+                document.getElementById('sav-amount').value = sav.amount;
+                document.getElementById('sav-pay-day').value = sav.payDay || 10;
+                document.getElementById('sav-rate-base').value = sav.rateBase;
+                document.getElementById('sav-rate-prime').value = sav.ratePrime;
+                openSavingsModal();
+            }
+        }
+
+        function deleteSavings(id) {
+            appData.savings = appData.savings.filter(s => s.id !== id);
+            saveLocalData();
+            renderSavings();
+            renderDashboard();
+        }
+
+        function saveAccount(e) {
+            e.preventDefault();
+            const id = document.getElementById('acc-id').value;
+            const name = document.getElementById('acc-name').value;
+            const type = document.getElementById('acc-type').value;
+            const balance = parseInt(document.getElementById('acc-balance').value) || 0;
+
+            if (id) {
+                const acc = appData.accounts.find(a => a.id == id);
+                if (acc) { acc.name = name; acc.type = type; acc.balance = balance; }
+            } else {
+                appData.accounts.push({ id: Date.now(), name, type, balance });
+            }
+
+            saveLocalData();
+            closeModal('modal-account');
+            renderAccounts();
+            renderDashboard();
+        }
+
+        function editAccount(id) {
+            const acc = appData.accounts.find(a => a.id === id);
+            if (acc) {
+                document.getElementById('acc-id').value = acc.id;
+                document.getElementById('acc-name').value = acc.name;
+                document.getElementById('acc-type').value = acc.type;
+                document.getElementById('acc-balance').value = acc.balance;
+                openAccountModal();
+            }
+        }
+
+        function deleteAccount(id) {
+            appData.accounts = appData.accounts.filter(a => a.id !== id);
+            saveLocalData();
+            renderAccounts();
+            renderDashboard();
+        }
     </script>
 </body>
 </html>
